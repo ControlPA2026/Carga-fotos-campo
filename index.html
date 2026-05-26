@@ -1,0 +1,410 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--color-background-tertiary); min-height: 100vh; }
+
+.app-header {
+  background: var(--color-background-primary);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-header i { font-size: 22px; color: var(--color-text-info); }
+.app-header-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.app-header-sub { font-size: 12px; color: var(--color-text-secondary); }
+
+.step { display: none; padding: 16px; }
+.step.active { display: block; }
+
+.step-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.step-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+.step-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--color-text-tertiary); pointer-events: none; }
+#searchInput {
+  width: 100%;
+  padding: 10px 10px 10px 34px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+.lcl-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
+.lcl-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.lcl-card:active { background: var(--color-background-secondary); }
+.lcl-card.selected { border: 1.5px solid var(--color-border-info); background: var(--color-background-info); }
+.lcl-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.lcl-id { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); background: var(--color-background-secondary); padding: 2px 8px; border-radius: 20px; }
+.lcl-ing { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.lcl-desc { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.lcl-obras { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+
+.btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-secondary {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.selected-banner {
+  background: var(--color-background-info);
+  border: 0.5px solid var(--color-border-info);
+  border-radius: var(--border-radius-lg);
+  padding: 14px;
+  margin-bottom: 20px;
+}
+.selected-banner-label { font-size: 11px; color: var(--color-text-info); margin-bottom: 4px; font-weight: 500; }
+.selected-banner-ing { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.selected-banner-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.upload-zone {
+  border: 1.5px dashed var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--color-background-primary);
+  margin-bottom: 12px;
+}
+.upload-zone i { font-size: 32px; color: var(--color-text-tertiary); display: block; margin-bottom: 8px; }
+.upload-zone p { font-size: 14px; color: var(--color-text-secondary); }
+.upload-zone small { font-size: 12px; color: var(--color-text-tertiary); }
+#fileInput { display: none; }
+
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.photo-thumb { position: relative; aspect-ratio: 1; border-radius: var(--border-radius-md); overflow: hidden; }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-thumb-remove {
+  position: absolute; top: 4px; right: 4px;
+  background: rgba(0,0,0,0.55); color: #fff;
+  border: none; border-radius: 50%;
+  width: 22px; height: 22px;
+  font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.nota-field {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  resize: none;
+  font-family: var(--font-sans);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.progress-bar-wrap { height: 4px; background: var(--color-background-secondary); border-radius: 2px; margin: 16px 0 8px; }
+.progress-bar { height: 100%; background: var(--color-text-primary); border-radius: 2px; transition: width 0.4s ease; }
+
+.success-icon { text-align: center; margin: 24px 0 16px; }
+.success-icon i { font-size: 48px; color: var(--color-text-success); }
+.success-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); text-align: center; margin-bottom: 8px; }
+.success-detail { font-size: 13px; color: var(--color-text-secondary); text-align: center; line-height: 1.6; }
+
+.steps-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px 12px;
+}
+.step-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-border-secondary); transition: background 0.2s; }
+.step-dot.active { background: var(--color-text-primary); width: 20px; border-radius: 3px; }
+
+.empty-state { text-align: center; padding: 32px 0; color: var(--color-text-tertiary); font-size: 13px; }
+</style>
+
+<h2 class="sr-only">App de carga de fotos para personal de campo — selecciona tu LCL y sube las fotos del trabajo</h2>
+
+<div class="app-header">
+  <i class="ti ti-camera" aria-hidden="true"></i>
+  <div>
+    <div class="app-header-title">Carga de campo</div>
+    <div class="app-header-sub">Control de liquidaciones</div>
+  </div>
+</div>
+
+<div class="steps-indicator" id="dotsWrap">
+  <div class="step-dot active" id="dot0"></div>
+  <div class="step-dot" id="dot1"></div>
+  <div class="step-dot" id="dot2"></div>
+</div>
+
+<div class="step active" id="step0">
+  <div class="step-label">Paso 1 de 3</div>
+  <div class="step-title">Selecciona tu LCL</div>
+  <div class="step-desc">Busca por código, descripción o número de obra.</div>
+  <div class="search-wrap">
+    <i class="ti ti-search" aria-hidden="true"></i>
+    <input type="text" id="searchInput" placeholder="Buscar LCL..." autocomplete="off" />
+  </div>
+  <div class="lcl-list" id="lclList"></div>
+  <button class="btn-primary" id="btnStep1" disabled>
+    Continuar <i class="ti ti-arrow-right" aria-hidden="true"></i>
+  </button>
+</div>
+
+<div class="step" id="step1">
+  <div class="step-label">Paso 2 de 3</div>
+  <div class="step-title">Sube las fotos</div>
+  <div class="step-desc">Puedes subir varias fotos a la vez. Agrega una nota si necesitas.</div>
+
+  <div class="selected-banner" id="selectedBanner">
+    <div class="selected-banner-label">LCL seleccionado</div>
+    <div class="selected-banner-ing" id="bannerIng">—</div>
+    <div class="selected-banner-desc" id="bannerDesc">—</div>
+  </div>
+
+  <div class="upload-zone" id="uploadZone">
+    <i class="ti ti-photo-up" aria-hidden="true"></i>
+    <p>Toca para subir fotos</p>
+    <small>o toma una foto directamente</small>
+  </div>
+  <input type="file" id="fileInput" accept="image/*" multiple capture="environment" />
+
+  <div class="photo-grid" id="photoGrid"></div>
+
+  <textarea class="nota-field" id="notaField" rows="3" placeholder="Nota opcional (observación, descripción del trabajo...)"></textarea>
+
+  <button class="btn-primary" id="btnStep2" disabled>
+    Enviar fotos <i class="ti ti-send" aria-hidden="true"></i>
+  </button>
+  <button class="btn-secondary" id="btnBack">
+    <i class="ti ti-arrow-left" aria-hidden="true"></i> Cambiar LCL
+  </button>
+</div>
+
+<div class="step" id="step2">
+  <div class="success-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
+  <div class="success-title">¡Fotos enviadas!</div>
+  <div class="success-detail" id="successDetail">Las fotos fueron cargadas correctamente a la carpeta del LCL.</div>
+  <div class="progress-bar-wrap" id="progressWrap" style="display:none;">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+  <button class="btn-primary" id="btnNuevo" style="margin-top:24px;">
+    <i class="ti ti-plus" aria-hidden="true"></i> Cargar otro LCL
+  </button>
+</div>
+
+<script>
+const LCL_DATA = [
+  { id: 20,  ing: "LCL-6300667303", obras: "6300695219", desc: "DS008_TRABAJOS DEFINITIVOS", tipo: "inversion" },
+  { id: 49,  ing: "LCL-6300795591", obras: "6300814733", desc: "EXTENSION DE REDES SDP", tipo: "inversion" },
+  { id: 72,  ing: "LCL-6300843796", obras: "6300863727", desc: "AGRUPACION FAMILIAR NUEVA", tipo: "inversion" },
+  { id: 80,  ing: "LCL-6300848856", obras: "6300868990", desc: "DD001_AGRUPACION FAMILIAR", tipo: "inversion" },
+  { id: 82,  ing: "LCL-6300864548", obras: "6300903798", desc: "DC002_NORMALIZACIÓN REDES", tipo: "inversion" },
+  { id: 170, ing: "LCL-6300613287", obras: "6300619416", desc: "COMPAÑIA INVERSIONES SANTA INES", tipo: "cliente" },
+  { id: 384, ing: "LCL-6300688096", obras: "6300701534", desc: "BECA INMOBILIARIA PERU", tipo: "cliente" },
+  { id: 537, ing: "LCL-6300742376", obras: "6300753768", desc: "PAZ REAL ESTATE S.A.C.", tipo: "cliente" },
+  { id: 561, ing: "LCL-6300743929", obras: "6300790526", desc: "SM RESIDENCIAL PRIME S.", tipo: "cliente" },
+];
+
+const POWER_AUTOMATE_URL = "PEGAR_AQUI_URL_POWER_AUTOMATE";
+
+let selectedLCL = null;
+let selectedFiles = [];
+
+function renderList(filter) {
+  const list = document.getElementById("lclList");
+  const filtered = LCL_DATA.filter(l =>
+    !filter ||
+    l.ing.toLowerCase().includes(filter) ||
+    l.obras.includes(filter) ||
+    l.desc.toLowerCase().includes(filter) ||
+    String(l.id).includes(filter)
+  );
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state">No se encontraron LCLs</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(l => `
+    <div class="lcl-card ${selectedLCL && selectedLCL.id === l.id ? 'selected' : ''}" data-id="${l.id}" onclick="selectLCL(${l.id})">
+      <div class="lcl-card-top">
+        <span class="lcl-ing">${l.ing}</span>
+        <span class="lcl-id">ID ${l.id}</span>
+      </div>
+      <div class="lcl-desc">${l.desc}</div>
+      <div class="lcl-obras">Obras: ${l.obras}</div>
+    </div>
+  `).join("");
+}
+
+function selectLCL(id) {
+  selectedLCL = LCL_DATA.find(l => l.id === id);
+  renderList(document.getElementById("searchInput").value.toLowerCase());
+  document.getElementById("btnStep1").disabled = false;
+}
+
+document.getElementById("searchInput").addEventListener("input", e => {
+  renderList(e.target.value.toLowerCase());
+});
+
+document.getElementById("btnStep1").addEventListener("click", () => {
+  if (!selectedLCL) return;
+  document.getElementById("bannerIng").textContent = selectedLCL.ing;
+  document.getElementById("bannerDesc").textContent = selectedLCL.desc + " · Obras: " + selectedLCL.obras;
+  goStep(1);
+});
+
+document.getElementById("btnBack").addEventListener("click", () => goStep(0));
+
+document.getElementById("uploadZone").addEventListener("click", () => {
+  document.getElementById("fileInput").click();
+});
+
+document.getElementById("fileInput").addEventListener("change", e => {
+  const newFiles = Array.from(e.target.files);
+  selectedFiles = [...selectedFiles, ...newFiles];
+  renderThumbs();
+  document.getElementById("btnStep2").disabled = selectedFiles.length === 0;
+  e.target.value = "";
+});
+
+function renderThumbs() {
+  const grid = document.getElementById("photoGrid");
+  grid.innerHTML = selectedFiles.map((f, i) => {
+    const url = URL.createObjectURL(f);
+    return `<div class="photo-thumb">
+      <img src="${url}" alt="foto ${i+1}" />
+      <button class="photo-thumb-remove" onclick="removePhoto(${i})" aria-label="eliminar foto ${i+1}">×</button>
+    </div>`;
+  }).join("");
+}
+
+function removePhoto(i) {
+  selectedFiles.splice(i, 1);
+  renderThumbs();
+  document.getElementById("btnStep2").disabled = selectedFiles.length === 0;
+}
+
+document.getElementById("btnStep2").addEventListener("click", async () => {
+  const btn = document.getElementById("btnStep2");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" aria-hidden="true"></i> Enviando...';
+
+  const nota = document.getElementById("notaField").value;
+
+  try {
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      const base64 = await toBase64(file);
+      const body = {
+        id_origen: selectedLCL.id,
+        lcl_ing: selectedLCL.ing,
+        lcl_obras: selectedLCL.obras,
+        descripcion: selectedLCL.desc,
+        nombre_archivo: file.name,
+        archivo_base64: base64,
+        nota: nota
+      };
+
+      if (POWER_AUTOMATE_URL !== "PEGAR_AQUI_URL_POWER_AUTOMATE") {
+        await fetch(POWER_AUTOMATE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+      }
+    }
+
+    document.getElementById("successDetail").textContent =
+      `${selectedFiles.length} foto${selectedFiles.length > 1 ? 's' : ''} enviada${selectedFiles.length > 1 ? 's' : ''} correctamente para ${selectedLCL.ing}.`;
+    goStep(2);
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = 'Enviar fotos <i class="ti ti-send"></i>';
+    alert("Error al enviar. Revisa tu conexión e intenta de nuevo.");
+  }
+});
+
+document.getElementById("btnNuevo").addEventListener("click", () => {
+  selectedLCL = null;
+  selectedFiles = [];
+  document.getElementById("photoGrid").innerHTML = "";
+  document.getElementById("notaField").value = "";
+  document.getElementById("searchInput").value = "";
+  document.getElementById("btnStep1").disabled = true;
+  document.getElementById("btnStep2").disabled = true;
+  renderList("");
+  goStep(0);
+});
+
+function goStep(n) {
+  document.querySelectorAll(".step").forEach((s, i) => {
+    s.classList.toggle("active", i === n);
+  });
+  [0,1,2].forEach(i => {
+    const dot = document.getElementById("dot" + i);
+    dot.classList.toggle("active", i === n);
+  });
+}
+
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(",")[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+renderList("");
+</script>
