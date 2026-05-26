@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Carga de campo — Control LCL</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f4f2; min-height: 100vh; color: #1a1a1a; }
+.app-header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+.app-header-title { font-size: 16px; font-weight: 600; }
+.app-header-sub { font-size: 12px; color: #666; }
+.steps-indicator { display: flex; align-items: center; gap: 6px; padding: 12px 16px 0; }
+.step-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; transition: all 0.2s; }
+.step-dot.active { background: #1a1a1a; width: 20px; border-radius: 3px; }
+.step { display: none; padding: 16px; }
+.step.active { display: block; }
+.step-label { font-size: 11px; font-weight: 600; color: #999; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; }
+.step-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #999; pointer-events: none; }
+#searchInput { width: 100%; padding: 11px 11px 11px 34px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; background: #fff; color: #1a1a1a; outline: none; }
+#searchInput:focus { border-color: #0078d4; }
+.lcl-list { display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; }
+.lcl-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 13px 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.lcl-card.selected { border: 2px solid #0078d4; background: #f0f7ff; }
+.lcl-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.lcl-ing { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+.lcl-id { font-size: 11px; font-weight: 600; color: #666; background: #f0f0f0; padding: 2px 8px; border-radius: 20px; }
+.lcl-desc { font-size: 12px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.lcl-obras { font-size: 11px; color: #999; margin-top: 2px; }
+.btn-primary { width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-secondary { width: 100%; padding: 13px; background: transparent; color: #1a1a1a; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+.selected-banner { background: #f0f7ff; border: 1px solid #b3d4f5; border-radius: 12px; padding: 14px; margin-bottom: 20px; }
+.selected-banner-label { font-size: 11px; color: #0078d4; font-weight: 600; margin-bottom: 4px; }
+.selected-banner-ing { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+.selected-banner-desc { font-size: 12px; color: #666; margin-top: 2px; }
+.upload-zone { border: 2px dashed #ccc; border-radius: 12px; padding: 28px 16px; text-align: center; cursor: pointer; background: #fff; margin-bottom: 12px; }
+.upload-zone svg { width: 36px; height: 36px; color: #ccc; display: block; margin: 0 auto 10px; }
+.upload-zone p { font-size: 14px; color: #666; font-weight: 500; }
+.upload-zone small { font-size: 12px; color: #999; }
+#fileInput { display: none; }
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.photo-thumb { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-thumb-remove { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.nota-field { width: 100%; padding: 11px 13px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; background: #fff; color: #1a1a1a; resize: none; font-family: inherit; margin-bottom: 4px; line-height: 1.5; outline: none; }
+.success-icon { text-align: center; margin: 32px 0 16px; }
+.success-icon svg { width: 56px; height: 56px; color: #16a34a; }
+.success-title { font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 10px; }
+.success-detail { font-size: 14px; color: #666; text-align: center; line-height: 1.6; }
+.empty-state { text-align: center; padding: 32px 0; color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app-header">
+  <div>
+    <div class="app-header-title">Carga de campo</div>
+    <div class="app-header-sub">Control de liquidaciones</div>
+  </div>
+</div>
+<div class="steps-indicator">
+  <div class="step-dot active" id="dot0"></div>
+  <div class="step-dot" id="dot1"></div>
+  <div class="step-dot" id="dot2"></div>
+</div>
+<div class="step active" id="step0">
+  <div class="step-label">Paso 1 de 3</div>
+  <div class="step-title">Selecciona tu LCL</div>
+  <div class="step-desc">Busca por código, descripción o número de obra.</div>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Buscar LCL..." autocomplete="off" />
+  </div>
+  <div class="lcl-list" id="lclList"></div>
+  <button class="btn-primary" id="btnStep1" disabled>Continuar</button>
+</div>
+<div class="step" id="step1">
+  <div class="step-label">Paso 2 de 3</div>
+  <div class="step-title">Sube las fotos</div>
+  <div class="step-desc">Puedes subir varias fotos a la vez desde tu galería o cámara.</div>
+  <div class="selected-banner">
+    <div class="selected-banner-label">LCL seleccionado</div>
+    <div class="selected-banner-ing" id="bannerIng">—</div>
+    <div class="selected-banner-desc" id="bannerDesc">—</div>
+  </div>
+  <div class="upload-zone" id="uploadZone">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <p>Toca para subir fotos</p>
+    <small>Galería o cámara directa</small>
+  </div>
+  <input type="file" id="fileInput" accept="image/*" multiple />
+  <div class="photo-grid" id="photoGrid"></div>
+  <textarea class="nota-field" id="notaField" rows="3" placeholder="Nota opcional..."></textarea>
+  <button class="btn-primary" id="btnStep2" disabled>Enviar fotos</button>
+  <button class="btn-secondary" id="btnBack">Cambiar LCL</button>
+</div>
+<div class="step" id="step2">
+  <div class="success-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  </div>
+  <div class="success-title">¡Fotos enviadas!</div>
+  <div class="success-detail" id="successDetail">Las fotos fueron cargadas correctamente.</div>
+  <button class="btn-primary" id="btnNuevo" style="margin-top:28px;">Cargar otro LCL</button>
+</div>
+<script>
+const POWER_AUTOMATE_URL = "https://default24c2e1716e8e4193b3b6fc1b6bb306.bb.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/028be164232349ec967efb505d19707d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-ZoH5WozFVq6whadr9yz2GnijKhhkX29YfzmpnhWoLI";
+const LCL_DATA = [
+  { id: 170, ing: "LCL-6300613287", obras: "6300619416", desc: "COMPAÑIA DE INVERSIONES INMOBILIARIAS SANTA INES S.A.C." },
+  { id: 384, ing: "LCL-6300688096", obras: "6300701534", desc: "BECA INMOBILIARIA PERU" },
+  { id: 537, ing: "LCL-6300742376", obras: "6300753768", desc: "PAZ REAL ESTATE S.A.C." },
+  { id: 561, ing: "LCL-6300743929", obras: "6300790526", desc: "SM RESIDENCIAL PRIME S." },
+  { id: 594, ing: "LCL-6300775773", obras: "6300782728", desc: "FUNDICION Y MAESTRANZA" },
+  { id: 649, ing: "LCL-6300800767", obras: "6300810446", desc: "INMOBILIARIA 22 S.A.C." },
+  { id: 656, ing: "LCL-6300801485", obras: "6300811640", desc: "CORPORACION INMOBILIARIA SANTO CRISTO" },
+  { id: 657, ing: "LCL-6300797404", obras: "6300812856", desc: "PAZ REAL ESTATE S.A.C." },
+  { id: 662, ing: "LCL-6300802538", obras: "6300825662", desc: "SAC .LOS PORTALES DEPAR" },
+  { id: 694, ing: "LCL-6300810972", obras: "6300823676", desc: "GLJ CONSTRUCTORES E I" },
+  { id: 719, ing: "LCL-6300794917", obras: "6300838405", desc: "CALIZA INMOBILIARIA S.A" },
+  { id: 721, ing: "LCL-6300825710", obras: "6300835027", desc: "URBACOR INMOBILIARIA S." },
+  { id: 722, ing: "LCL-6300824665", obras: "6300835028", desc: "ARMONHY INMOBILIARIA S." },
+  { id: 732, ing: "LCL-6300825709", obras: "6300838407", desc: "GIANCARLO MARTIN TRUJIL" },
+  { id: 745, ing: "LCL-6300838081", obras: "6300839885", desc: "INTENDENCIA NACIONAL DE BOMBEROS" },
+  { id: 747, ing: "LCL-6300830337", obras: "6300839886", desc: "MACHE CONSTRUCTORES SA" },
+  { id: 748, ing: "LCL-6300834986", obras: "6300839887", desc: "EDITH COTRINA URBANO" },
+  { id: 778, ing: "LCL-6300843742", obras: "6300848560", desc: "FRANCISCO ANTONIO NAMUC" },
+  { id: 780, ing: "LCL-6300847496", obras: "6300855017", desc: "ANGELICA HUARIPATA SANT" },
+  { id: 785, ing: "LCL-6300849094", obras: "6300855026", desc: "AMERICA MOVIL PERU S.A." },
+  { id: 786, ing: "LCL-6300846149", obras: "6300860854", desc: "MUNICIPALIDAD METROPOLI" },
+  { id: 791, ing: "LCL-6300847551", obras: "6300858430", desc: "INVERSIONES PARQUE CAST" },
+  { id: 804, ing: "LCL-6300860916", obras: "6300865866", desc: "2333646_(1)_INMOBILIARIA BENEVENTO" },
+  { id: 805, ing: "LCL-6300844391", obras: "6300863793", desc: "2157760_ABYAL S.A.C._EDIFICIO PARQUE CHICAMA" },
+  { id: 814, ing: "LCL-6300860994", obras: "6300872746", desc: "DD005_2332601_IMPORTACIONES Y COMERCIO INTERNACIONAL SOCIEDA" },
+  { id: 815, ing: "LCL-6300860995", obras: "6300874696", desc: "2333644_(1)_CONSTRUCTORA Y SERVICIO" },
+  { id: 820, ing: "LCL-6300864247", obras: "6300870289", desc: "2326238_(1)_PI PRADO 2 SAC" },
+  { id: 822, ing: "LCL-6300866319", obras: "6300872132", desc: "LUIS FERNANDO VERNAZZA" },
+  { id: 826, ing: "LCL-6300864301", obras: "6300869652", desc: "ENTEL PERU S.A." },
+  { id: 831, ing: "LCL-6300862867", obras: "6300870291", desc: "AMERICA MOVIL PERU S.A." },
+  { id: 837, ing: "LCL-6300864771", obras: "6300883678", desc: "2303325_(1)_INMOBILIARIA Y CONSTRUC" },
+  { id: 843, ing: "LCL-6300873240", obras: "6300875894", desc: "MUNICIPALIDAD DE MAGDAL" },
+  { id: 848, ing: "LCL-6300876368", obras: "6300878049", desc: "MORMONTOY MORALES ADELGUISA ELENA" },
+  { id: 849, ing: "LCL-6300877979", obras: "6300881652", desc: "RAPIMAGEN S.A." },
+  { id: 854, ing: "LCL-6300872081", obras: "6300880411", desc: "MAXIMO ANTONIO RAMOS AL" },
+  { id: 855, ing: "LCL-6300869432", obras: "6300881653", desc: "2335225_(1)_DESARROLLO AGUARICO SAC" },
+  { id: 856, ing: "LCL-6300880574", obras: "6300884203", desc: "ASOCIACION DE ARTESANOS DON BOSCO" },
+  { id: 857, ing: "LCL-6300880575", obras: "6300884204", desc: "MARTINEZ VELA CORIN" },
+  { id: 859, ing: "LCL-6300878123", obras: "6300896327", desc: "CONSTRUCCIONES ELECTROM" },
+  { id: 860, ing: "LCL-6300877652", obras: "6300904909", desc: "GRUPO ARCA CONTRATISTAS" },
+  { id: 867, ing: "LCL-6300887995", obras: "6300893867", desc: "HUAMANI REYES MARTHA" },
+  { id: 868, ing: "LCL-6300886982", obras: "6300895762", desc: "INMOBILIARIA JOSA SAC" },
+  { id: 869, ing: "LCL-6300887941", obras: "6300895763", desc: "INMOBILIARIA & CONSTRUCTURA QALA SAC" },
+  { id: 870, ing: "LCL-6300891190", obras: "6300893868", desc: "MIRANDA LOARTE CEFERINO LUCIANO" },
+  { id: 872, ing: "LCL-6300886903", obras: "6300896328", desc: "CONSTRUCTORA E INMOBILIARIA OPTIMUS S.A." },
+  { id: 873, ing: "LCL-6300893019", obras: "6300895764", desc: "ÑARQUEZ SEDANO ESTELA" },
+  { id: 874, ing: "LCL-6300893856", obras: "6300895765", desc: "AMERICA MOVIL PERU S.A.C" },
+  { id: 876, ing: "LCL-6300886447", obras: "6300907075", desc: "2343292_LOPEZ LOAIZA ROSA" },
+  { id: 878, ing: "LCL-6300885692", obras: "6300896329", desc: "ISRAEL MARIO CHILIN FLORES" },
+  { id: 879, ing: "LCL-6300896897", obras: "6300898542", desc: "SAEZ ALTEZ ADOLFO CANTORBERY" },
+  { id: 880, ing: "LCL-6300877454", obras: "6300907082", desc: "2339828_(1)_INVERSIONES INMOBILIARI" },
+  { id: 881, ing: "LCL-6300893860", obras: "6300899280", desc: "Q-MEDICAL S.A.C." },
+  { id: 898, ing: "LCL-6300900019", obras: "6300926781", desc: "2341379_(1)_INVERSIONES INMOBILIARI" },
+  { id: null, ing: "LCL-6300811075", obras: "6300835018", desc: "INVERSIONES PSL S.A.C ." },
+  { id: null, ing: "LCL-6300765225", obras: "6300789533", desc: "RESTAURANTE CHIFA FONG" },
+  { id: null, ing: "LCL-6300794689", obras: "6300801203", desc: "LARES INMOBILIARIA SO" },
+  { id: null, ing: "LCL-6300860464", obras: "SAP ESTÁNDAR", desc: "2286568_(1)_GCC VIVIENDAS SAC . NUL" },
+  { id: null, ing: "LCL-6300909960", obras: "6300921263", desc: "MUNICIPALIDAD METROPOLITANA DE LIMA ." },
+  { id: null, ing: "LCL-6300895063", obras: "SAP ESTÁNDAR", desc: "INMOBILIARIA DEL NORTE" },
+  { id: null, ing: "LCL-6300865488", obras: "6300906373", desc: "INMOBILIARIA OR S.A.C." },
+  { id: null, ing: "LCL-6300910795", obras: "6300913698", desc: "AMERICA MOVIL PERU S.A.C" },
+  { id: null, ing: "LCL-6300903205", obras: "6300927065", desc: "SIENA CONSTRUCTORES SAC" },
+  { id: null, ing: "LCL-6300875317", obras: "6300883680", desc: "CORPORACIÓN INMOBILIARIA JADE SOCIEDAD ANONIMA CERRADA" },
+  { id: null, ing: "LCL-6300897022", obras: "6300919902", desc: "COMPANIA INDUSTRIAL ROM" },
+  { id: null, ing: "LCL-6300902784", obras: "6300926703", desc: "DD004_2332636_IBEROAMERICANA DE PLASTICOS SAC" },
+  { id: null, ing: "LCL-6300913716", obras: "6300919904", desc: "SALAZAR DULANTO IRIS VIOLETA" },
+  { id: null, ing: "LCL-6300845743", obras: "6300870294", desc: "CORPORACION OLMO" },
+  { id: null, ing: "LCL-6300912777", obras: "6300922186", desc: "PROVINCIA MISIONERA DE" },
+  { id: null, ing: "LCL-6300904359", obras: "REVALORIZAR 5200000069", desc: "2318948_(1)_INMOBILIARIA Y EDIFICAC" },
+  { id: null, ing: "LCL-6300907092", obras: "6300933745", desc: "INVERSIONES PAIRO S.A.C" },
+  { id: null, ing: "LCL-6300908647", obras: "6300929246", desc: "JPS DOS INMOBILIARIA S." },
+  { id: null, ing: "LCL-6300823142", obras: "6300838409", desc: "CONSTRUCTORES & ASOCIADOS HASA" },
+  { id: null, ing: "LCL-6300860323", obras: "6300902058", desc: "ASOCIACION PRO VIVIENDA ALMIRANTE GRAU" },
+  { id: null, ing: "LCL-6300900595", obras: "REVALORIZAR 5200000069", desc: "2343512_(1)...GRUPO INMOBILIARIO BROCKSA S.A.C" },
+  { id: null, ing: "LCL-6300906853", obras: "6300931116", desc: "ELIZABETH NOEMI VILCHEZ" },
+  { id: null, ing: "LCL-6300913719", obras: "6300924268", desc: "IMPORTACIONES GOICOCHEA SAC" },
+  { id: null, ing: "LCL-6300904331", obras: "6300933743", desc: "2348113_(1)_SAN MIGUEL DESARROLLO I" },
+  { id: null, ing: "LCL-6300913206", obras: "6300922196", desc: "GLICERIO FELIX BARREDA" },
+  { id: null, ing: "LCL-6300891607", obras: "REVALORIZAR 5200000069", desc: "2326165_(1)_PROYECTOS INMOBILIARIOS" },
+  { id: null, ing: "LCL-6300837003", obras: "6300853438", desc: "GRUPO INMOBILIARIO BROC" },
+  { id: null, ing: "LCL-6300910101", obras: "6300919906", desc: "URBANICA PROYECTOS INMO" },
+  { id: null, ing: "LCL-6300902068", obras: "6300929206", desc: "2344634_. . GRUPO INMOBILIARIO FNV1 SAC" },
+  { id: null, ing: "LCL-6300927631", obras: "6300929224", desc: "LUIS ERNESTO MORALES CO" },
+  { id: null, ing: "LCL-6300819588", obras: "6300838420", desc: "DREAM PLACE CAPAC - PROY LIBERTAD" },
+  { id: null, ing: "LCL-6300856096", obras: "6300933740", desc: "2292856_(1)_GRUPO INMOBILIARIO BROC" },
+  { id: null, ing: "LCL-6300907506", obras: "6300912357", desc: "EDUARDO JOSE RICCI COCC" },
+  { id: null, ing: "LCL-6300927633", obras: "6300938968", desc: "CONSORCIO CONSTRUCTOR M" },
+  { id: null, ing: "LCL-6300913205", obras: "6300924266", desc: "ASOCIACION PERUANO JAPO" },
+  { id: null, ing: "LCL-6300912325", obras: "6300926758", desc: "BM EDIFICACIONES SAC" },
+  { id: null, ing: "LCL-6300906235", obras: "6300940307", desc: "DD012_2322404_(1)_B Y V GRUPO INMOBILIARI" },
+  { id: null, ing: "LCL-6300913718", obras: "6300924267", desc: "GERAMAR CONSTRUCCIONES" },
+  { id: null, ing: "LCL-6300927632", obras: "6300932763", desc: "NORMA FELICITA DAVILA O" },
+  { id: null, ing: "LCL-6300833022", obras: "6300938236", desc: "2332058_(169)_MARINA CITY CENTER SO" },
+  { id: null, ing: "LCL-6300910068", obras: "6300929217", desc: "DD005_2340347_(1)_GESTIÓN DE INGENIERÍA A" },
+  { id: null, ing: "LCL-6300911305", obras: "6300919905", desc: "SOLANA COMERCIAL SAC" },
+  { id: null, ing: "LCL-6300825079", obras: "6300838404", desc: "FAMAI SEAL JET S.A.C." },
+  { id: null, ing: "LCL-6300913783", obras: "6300938239", desc: "2336777_(1)_PROYECTO EDIFICIO PRO S" },
+  { id: null, ing: "LCL-6300825708", obras: "6300838041", desc: "2215029_(1)_INMOBILIARIA JVG S.A.C." },
+  { id: null, ing: "LCL-6300922538", obras: "6300929215", desc: "DD012_2350313_(1)_SALERNO INMOBILIARIA SA" },
+  { id: null, ing: "LCL-6300910734", obras: "6300940305", desc: "2343740_. . LA ROSA PROYECTOS S.A.C. ..." },
+  { id: null, ing: "LCL-6300820850", obras: "6300887225", desc: "INMOBILIARIA ACTUAL SAN JESUS MARIA" },
+  { id: null, ing: "LCL-6300938300", obras: "6300941483", desc: "VERA GUTIERREZ SAMUEL MARCOS" },
+  { id: null, ing: "LCL-6300931957", obras: "6300938970", desc: "DD012_2351648_(1)_THE PISONAY COMPANY COM" },
+  { id: null, ing: "LCL-6300935644", obras: "6300947816", desc: "" },
+  { id: null, ing: "LCL-6300904406", obras: "LIBERAR ODS", desc: "DD005_2341853_(1)_UNIVERSIDAD TECNOLOGICA" },
+  { id: null, ing: "LCL-6300929796", obras: "6300938969", desc: "2327008_(1)_ARMONHY INMOBILIARIA S." },
+  { id: null, ing: "LCL-6300913782", obras: "6300929219", desc: "DD006_2335227_(1)_RECIP. ENVASES Y ESTAMP" },
+  { id: null, ing: "LCL-6300937528", obras: "6300944901", desc: "VILLANUEVA CASTREJON DE ALTEZ VIOLETA ELIZABETH" },
+  { id: null, ing: "LCL-6300913714", obras: "6300919903", desc: "SUELDO PALLARDEL RUBEN DARIO" },
+  { id: null, ing: "LCL-6300935780", obras: "6300941651", desc: "CORPORACION INMOBILIARIA FERMONT S.A.C." },
+  { id: null, ing: "LCL-6300931386", obras: "6300932762", desc: "SIAM PLUS SAFETY E.I.R.L." },
+  { id: null, ing: "LCL-6300942633", obras: "6300944903", desc: "SANCHEZ BERNAL BENITA" },
+  { id: null, ing: "LCL-6300848721", obras: "6300868974", desc: "VIVA NEGOCIO INMOBILIAR" },
+  { id: null, ing: "LCL-6300930338", obras: "6300938275", desc: "2337759_(1)_FONDO PARA ENFERMEDADES" },
+  { id: null, ing: "LCL-6300943301", obras: "6300944905", desc: "CHAMPAC BENITES ROSA" },
+  { id: null, ing: "LCL-6300950450", obras: "6300952858", desc: "ESQUIVEL TALAVERA CARLOS ENRIQUE" },
+  { id: null, ing: "LCL-6300939890", obras: "6300947635", desc: "DD005_2351212_(1)_FABRIZIO CAROZZI SUAREZ" },
+  { id: null, ing: "LCL-6300944006", obras: "6300948850", desc: "CARMELA HAYDEE MIRANDA" },
+  { id: null, ing: "LCL-6300933873", obras: "6300947632", desc: "DD012_2343798_DIAZ ALVAREZ ROMI CAROLINA" },
+  { id: null, ing: "LCL-6300914932", obras: "6300938240", desc: "2344638_JPS TRES INMOBILIARIA S.A.C. ..." },
+  { id: null, ing: "LCL-6300946022", obras: "6300963829", desc: "HUAMAN FRANCIA PERCY RAUL" },
+  { id: null, ing: "LCL-6300960605", obras: "6300963824", desc: "CORPORACION INMOBILIARIA FERMONT S.A.C." },
+  { id: null, ing: "LCL-6300944002", obras: "6300976908", desc: "DD012_2335200_(1)_INMOBILIRIA DARALE S.A." },
+  { id: null, ing: "LCL-6300927546", obras: "6300935477", desc: "DD012_2348266_(1)_INMOBILIARIA DARALE SAC" },
+  { id: null, ing: "LCL-6300961201", obras: "6300970641", desc: "CORPORACION INMOBILIARIA SAN JOSE S.A.C." },
+  { id: null, ing: "LCL-6300933874", obras: "6300947822", desc: "DD012_2351314_(1)_CORPORACION INMOBILIARI" },
+  { id: null, ing: "LCL-6300955522", obras: "6300960645", desc: "2353593_(1)_JMS PROYECTOS SAC" },
+  { id: null, ing: "LCL-6300934814", obras: "6300957895", desc: "CONSTRUCTORA IXTUS SAC" },
+  { id: null, ing: "LCL-6300959991", obras: "6300968055", desc: "EVA SOLEDAD CHUCO RAMOS" },
+  { id: null, ing: "LCL-6300959540", obras: "6300970649", desc: "PAMELA STEFANNY ZUÑIGA CANO" },
+  { id: null, ing: "LCL-6300926183", obras: "6300929222", desc: "CORPORACION INMOBILIARIA NERMAR S.A.C." },
+  { id: null, ing: "LCL-6300943410", obras: "6300963826", desc: "INMOBILIARIA NEREA S.A." },
+  { id: null, ing: "LCL-6300937632", obras: "6300960644", desc: "2321354_(1)_MYE INMOBILIARIO" },
+  { id: null, ing: "LCL-6300947800", obras: "6300957897", desc: "INMOBILIARIA ROKKA SAC" },
+  { id: null, ing: "LCL-6300924160", obras: "6300938241", desc: "2348602_(1)_GRUPO INMOBILIARIO BROC" },
+  { id: null, ing: "LCL-6300815624", obras: "6300822437", desc: "GRUPO NOVAMUNDO S.A.C" },
+  { id: null, ing: "LCL-6300946997", obras: "6300948846", desc: "GM CONVERSIONES SOCIEDAD ANONIMA CERRADA" },
+  { id: null, ing: "LCL-6300949475", obras: "6300951620", desc: "AMERICA MOVIL PERU S.A.C" },
+  { id: null, ing: "LCL-6300937823", obras: "6300963830", desc: "QUISPETIRA MOSQUEIRA JANET MARLENE" },
+  { id: null, ing: "LCL-6300943947", obras: "6300946195", desc: "Varillas Colmenares Pablo Alberto" },
+  { id: null, ing: "LCL-6300814016", obras: "6300838403", desc: "PAZ CENTENARIO S.A. ..." },
+  { id: null, ing: "LCL-6300895896", obras: "6300997929", desc: "ECO STYLE SAC" },
+  { id: null, ing: "LCL-6300956313", obras: "6300972302", desc: "SAUL JHONATAN ANGULO CORAL" },
+  { id: null, ing: "LCL-6300963325", obras: "6300968337", desc: "AMERICA MOVIL PERU S.A.C" },
+  { id: null, ing: "LCL-6300947180", obras: "6300951621", desc: "BENITA SANCHEZ BERNAL" },
+  { id: null, ing: "LCL-6300947848", obras: "PENDIENTE", desc: "ARMONHY INMOBILIARIA S." },
+  { id: null, ing: "LCL-6300946297", obras: "6300957896", desc: "INMOBILIARIA PARQUE GALICIA" },
+  { id: null, ing: "LCL-6300926300", obras: "6300968039", desc: "GRUPO PANA S A" },
+  { id: null, ing: "LCL-6300948055", obras: "6300963832", desc: "MEDINA SANTOS VICTOR MANUEL" },
+  { id: null, ing: "LCL-6300943327", obras: "6300969877", desc: "DD012_2350044_(1)_AMESUR INMOBILIARIA S.A" },
+  { id: null, ing: "LCL-6300947051", obras: "6300961814", desc: "2355645_(35)_INVERSIONES GP6 S.A.C" },
+  { id: null, ing: "LCL-6300945982", obras: "LIBERAR ODS", desc: "DD012_2355370_(1)_INVERSION RENTABLE 4 S." },
+  { id: null, ing: "LCL-6300947668", obras: "6300956744", desc: "GRUPO ICONO INMOBILIARIA E INVERSIONES INVERSIONES" },
+  { id: null, ing: "LCL-6300940345", obras: "6300942816", desc: "ROBLES JARA KRISTY RHOUS" },
+  { id: null, ing: "LCL-6300944007", obras: "6300948847", desc: "AN PROYECTOSDISEO Y E" },
+  { id: null, ing: "LCL-6300958016", obras: "6300972763", desc: "INVERSIONES PALMACASONA S.A.C." },
+  { id: null, ing: "LCL-6300961199", obras: "6300970640", desc: "INSTITUTO DE IMAGENES MEDICAS S.A.C." },
+  { id: null, ing: "LCL-6300820848", obras: "6300866155", desc: "V Y V PROYECTO 64 S.A.C" },
+  { id: null, ing: "LCL-6300940866", obras: "6300963821", desc: "2353014_(1)_GRUPO INMOBILIARIO BROC" },
+  { id: null, ing: "LCL-6300964135", obras: "6300972283", desc: "GLORIA HAYDEE MARTINEZ" },
+  { id: null, ing: "LCL-6300960303", obras: "6300968040", desc: "EDUARDO MARIANO REVILLA PALOMINO" },
+  { id: null, ing: "LCL-6300892380", obras: "6300980459", desc: "2344780_LINEA 21 S.A.C." },
+  { id: null, ing: "LCL-6300921279", obras: "6300932794", desc: "TRITON INMOBILIARIA S.A.C." },
+  { id: null, ing: "LCL-6300936480", obras: "6300947631", desc: "DD012_2350034_(1)_BESCO S.A.C" },
+  { id: null, ing: "LCL-6300956525", obras: "6300972303", desc: "ANGELA MIDORI UECHI OSHIRO" },
+  { id: null, ing: "LCL-6300863605", obras: "6300896854", desc: "DD012_2261149_(1)_SAC MADRID INMOBILIARIA" },
+  { id: null, ing: "LCL-6300943785", obras: "6300963827", desc: "SALFCORP PERU S.A." },
+  { id: null, ing: "LCL-6300904358", obras: "6300926751", desc: "DD012_2308387_(1)_IN ONIX SAC . ." },
+  { id: null, ing: "LCL-6300957324", obras: "6300972762", desc: "INMOBILIARIA DARFEL S.A.C. . ." },
+  { id: null, ing: "LCL-6300839823", obras: "6300853457", desc: "QUATRO OMICRON SAC" },
+  { id: null, ing: "LCL-6300937633", obras: "6300960650", desc: "2351620_(1)_VITAIN DESARROLLADORA 2" },
+  { id: null, ing: "LCL-6300972696", obras: "6300981674", desc: "INMOBILIARIA IBG SAC" },
+  { id: null, ing: "LCL-6300971012", obras: "6300975222", desc: "VLS CONSULTORES S.A.C" },
+  { id: null, ing: "LCL-6300962598", obras: "6300972767", desc: "ASOCIACION DE GRAFICOS Y AFINES DE CENTRO LIMA AGACEL" },
+  { id: null, ing: "LCL-6300962596", obras: "6300970648", desc: "RUIDOS PERU SOCIEDAD ANONIMA CERRADA ." },
+  { id: null, ing: "LCL-6300956646", obras: "6300963823", desc: "RODRIGUEZ LARRAIN DEL CORRAL PATRICIA ." },
+  { id: null, ing: "LCL-6300961198", obras: "6300972764", desc: "ECOMARINA DESARROLLOS S.A.C" },
+  { id: null, ing: "LCL-6300970491", obras: "6300975225", desc: "ROYAL PROPERTIES S.A.C. ." },
+  { id: null, ing: "LCL-6300964136", obras: "6300968309", desc: "DIEGO JAIRO BELLO AÑAÑOS" },
+  { id: null, ing: "LCL-6300957323", obras: "PENDIENTE", desc: "2L INMOBILIARIA S.A.C." },
+  { id: null, ing: "LCL-6300943957", obras: "6300968063", desc: "RUBI MARLENE LOO BENITES" },
+  { id: null, ing: "LCL-6300960075", obras: "6300970647", desc: "ALFRED H KNIGHT DEL PERU S.A.C." },
+  { id: null, ing: "LCL-6300971324", obras: "6300975234", desc: "INVERSIONES PSL S.A.C ." },
+  { id: null, ing: "LCL-6300938673", obras: "6300941486", desc: "2324694_(1)_COTILLO SPORT MEDICAL C" },
+  { id: null, ing: "LCL-6300969183", obras: "6300978510", desc: "CONSTRUCTORA RFG S.A.C." },
+  { id: null, ing: "LCL-6300964593", obras: "6300972768", desc: "GARCIA & GALLO CONSTRUCCION Y SERVICIOS GENERALES SAC" },
+  { id: null, ing: "LCL-6300978935", obras: "6300984913", desc: "JUANA ESTHER JAIME MARQUINA DE LLONTOP" },
+  { id: null, ing: "LCL-6300982187", obras: "PENDIENTE", desc: "REYDA MERY TORRECILLA PEREZ" },
+  { id: null, ing: "LCL-6300963807", obras: "6300972766", desc: "BYTE INMOBILIARIA CONSTRUCTORA S.A.C." },
+  { id: null, ing: "LCL-6300977963", obras: "6300982569", desc: "MAVISA SERVICIOS GRAFICOS S.A.C" },
+  { id: null, ing: "LCL-6300976880", obras: "6300981669", desc: "SERVICIOS E INVERSIONES INMOBILIARIA HENCAR" },
+  { id: null, ing: "LCL-6300959203", obras: "6300972765", desc: "AGM INMOBILIARIA SAC" },
+  { id: null, ing: "LCL-6300971817", obras: "6300978512", desc: "CARPI INMOBILIARIA S.A.C ." },
+  { id: null, ing: "LCL-6300911457", obras: "6300926750", desc: "2328751_(1)_PROYECTO INMOBILIARIO M" },
+  { id: null, ing: "LCL-6300957354", obras: "6300972279", desc: "CONSTRUCTORA LECCA GUILLEN S.A.C" },
+  { id: null, ing: "LCL-6300951172", obras: "6300963822", desc: "ROSAS TEJADA AYLIN MILAGROS" },
+  { id: null, ing: "LCL-6300952248", obras: "6300982594", desc: "CONTROL Y TECNOLOGIA S.A.C." },
+  { id: null, ing: "LCL-6300983407", obras: "6300988178", desc: "LIDIA CECILIA CAMPOS AVALOS" },
+  { id: null, ing: "LCL-6300975308", obras: "6300984400", desc: "CONSTRUCTORA CYGNUS S.A.C." },
+  { id: null, ing: "LCL-6300985814", obras: "6300991862", desc: "SILVIA RUTH REYES LANDAURO" },
+  { id: null, ing: "LCL-6300838563", obras: "6300938237", desc: "2272313_(1)_QUATRO EPSILON SAC" },
+  { id: null, ing: "LCL-6300989172", obras: "", desc: "MUNICIPALIDAD DE MAGDALENA DEL MAR" },
+  { id: null, ing: "LCL-6300983663", obras: "6300989076", desc: "JHONNY ROGERS PERALTA FIGUEROA" },
+  { id: null, ing: "LCL-6300962847", obras: "6300969864", desc: "ROSA SAFRA RODRIGUEZ" },
+  { id: null, ing: "LCL-6300869100", obras: "6300875893", desc: "" },
+  { id: null, ing: "LCL-6300904333", obras: "6300940304", desc: "2336730_(1)_MCR PROYECTO 11 S.A.C ." },
+  { id: null, ing: "LCL-6300963520", obras: "6300982596", desc: "CONTROL Y TECNOLOGIA S.A.C." },
+  { id: null, ing: "LCL-6300958653", obras: "6300982595", desc: "DIN AUTOMATIZACION S.A.C." },
+  { id: null, ing: "LCL-6300985191", obras: "6300991865", desc: "LILIA FERNANDEZ DE PORTILLA" },
+  { id: null, ing: "LCL-6300949533", obras: "6300961817", desc: "TERRA INMOBILIARIA" },
+  { id: null, ing: "LCL-6300969844", obras: "6300972755", desc: "ABSOLUTE GAMES S.A.C." },
+  { id: null, ing: "LCL-6300984317", obras: "6300991882", desc: "" },
+  { id: null, ing: "LCL-6300965222", obras: "6300972751", desc: "BAUEN INVERSIONES S.A.C." },
+  { id: null, ing: "LCL-6300992433", obras: "", desc: "" },
+  { id: null, ing: "LCL-6300975778", obras: "6300991861", desc: "" },
+  { id: null, ing: "LCL-6300972697", obras: "6300984399", desc: "INVERSIONES INMOBILIARIAS ONCE S.A.C." },
+  { id: null, ing: "LCL-6300993921", obras: "", desc: "ARAGON LEON LIZBETH" },
+  { id: null, ing: "LCL-6300982640", obras: "", desc: "BAHIA DE ORO INMOBILIARIA S.A.C" },
+  { id: null, ing: "LCL-6300985460", obras: "", desc: "MUNICIPALIDAD METROPOLITANA DE LIMA" },
+  { id: null, ing: "LCL-6300993478", obras: "", desc: "BESCO S.A.C" },
+  { id: null, ing: "LCL-6300929342", obras: "6300963833", desc: "AGURTO LUGO FORTUNATO NOE" },
+  { id: null, ing: "LCL-6300983260", obras: "", desc: "JUAN FELIX CRUZ LAU" },
+  { id: null, ing: "LCL-6300972687", obras: "", desc: "TIENDAS TAMBO S.A.C." },
+  { id: null, ing: "LCL-6300966121", obras: "", desc: "MADELEINY MARLENY MARTINEZ PARRA" },
+  { id: null, ing: "LCL-6300972829", obras: "", desc: "DIDI VICTOR CONTRERAS ASTETE" },
+  { id: null, ing: "LCL-6300975782", obras: "", desc: "ANA GLADYS QUICAÑO RAMOS" },
+  { id: null, ing: "LCL-6300983284", obras: "", desc: "PROYECTO FLORA TRISTAN 21 SAC" },
+  { id: null, ing: "LCL-6300945108", obras: "", desc: "COOPERATIVA DE SERVICIOS ESPECIALES  MERCADO MARIA PADARO DE BELLIDO LTDA" },
+  { id: null, ing: "LCL-6300987242", obras: "", desc: "FERTILIDAD EVA S.A.C." },
+  { id: null, ing: "LCL-6300980243", obras: "", desc: "CONCRETA CONSTRUYE S.A.C" },
+  { id: null, ing: "LCL-6300958593", obras: "", desc: "ECOPLAZA WILSON S.A.C." },
+  { id: null, ing: "LCL-6300987156", obras: "", desc: "LIMA MODERNA INMOBILIARIA S.A.C." },
+  { id: null, ing: "LCL-6300983162", obras: "", desc: "CORPORACION INMOBILIARIA SAN JUAN S.A.C." },
+  { id: null, ing: "LCL-6300989174", obras: "", desc: "FAVIO FRANCISCO CHAVEZ GARRIDO" },
+  { id: null, ing: "LCL-6300982641", obras: "", desc: "BARRIONUEVO INMOBILIARIA S.A.C." },
+  { id: null, ing: "LCL-6300986035", obras: "", desc: "ISIDORO AVENDAÑO BARRIENTOS" },
+  { id: null, ing: "LCL-6300937532", obras: "", desc: "VARGAS LETONA LUIS ALBERTO" },
+  { id: null, ing: "LCL-6300987100", obras: "", desc: "SHAWN VEGA RODRÍGUEZ DE RUIZ" },
+  { id: null, ing: "LCL-6300865313", obras: "", desc: "MARINA DE GUERRA DEL PE" },
+  { id: null, ing: "LCL-6300982183", obras: "", desc: "Raul Guerra Mendoza" },
+  { id: null, ing: "LCL-6300984344", obras: "", desc: "TIENDAS TAMBO S.A.C." },
+  { id: null, ing: "223042026174935", obras: "", desc: "LYA MITZI DE GUADALUPE ESCOBAR MERINO" },
+  { id: null, ing: "216042026151918", obras: "", desc: "CARLOS MANUEL CERNA VARGAS" },
+  { id: null, ing: "LCL-6300924488", obras: "", desc: "MONASTERIO DE LA CONCEP" },
+  { id: null, ing: "LCL-6300667303", obras: "6300695219", desc: "DS008_TRABAJOS DEFINITIVOS SE 00372S" },
+  { id: null, ing: "LCL-6300795591", obras: "6300814733", desc: "EXTENSION DE REDES SDP, SDS E INSTALACION DE SCP PROVISIONAL, A FIN DE TRABAJOS PROVISIONALES PARA LA REMODELACION DE LA 00085S" },
+  { id: null, ing: "LCL-6300843796", obras: "6300863727", desc: "AGRUPACION FAMILIAR NUEVO PROGRESO - AMPLIACION" },
+  { id: null, ing: "LCL-6300848856", obras: "6300868990", desc: "DD001_AGRUPACION FAMILIAR VILLA EL MILAGRO" },
+  { id: null, ing: "LCL-6300864548", obras: "6300903798", desc: "DC002_NORMALIZACIÓN REDES D_22186A_2" },
+  { id: null, ing: "LCL-6300851500", obras: "6300863726", desc: "QS002_RENOVACIÓN CABLES SUB_00234S_2" },
+  { id: null, ing: "LCL-6300777853", obras: "6300814715", desc: "EXTENSION DE REDES SDP, DE CU-01 HACIA SED 00085S PARA DESCARGAR Q-13 (REFUERZO DE ENLACES DE 00085S – 05556C/04528A" },
+  { id: null, ing: "LCL-6300786990", obras: "6300838459", desc: "QS002_RENOVACIÓN CABLES SUB_05254C_1" },
+  { id: null, ing: "LCL-6300795593", obras: "6300814712", desc: "EXTENSION DE REDES SDP, SDS E INSTALACION DE SCP DEFINITIVA, A FIN DE TRABAJOS DEFINITIVOS PARA LA REMODELACION DE LA 00085S" },
+  { id: null, ing: "LCL-6300823896", obras: "6300838458", desc: "DS101_RENOVACIÓN CABLES SUB_00026S_2" },
+  { id: null, ing: "LCL-6300879968", obras: "6300897964", desc: "DC002_Normalización redes de MT/BT por calidad de producto_03248A_2" },
+  { id: null, ing: "LCL-6300859952", obras: "6300884807", desc: "QS002_RENOVACIÓN CABLES SUB_05388C_3" },
+  { id: null, ing: "LCL-6300860280", obras: "6300884809", desc: "QS002_RENOVACIÓN CABLES SUB_05328C_2" },
+  { id: null, ing: "LCL-6300712460", obras: "6300811677", desc: "DD008_POYECTO AMPLIACIÓN DE REDES SDP PARA CONSTRUCCIÓN DE NUEVA SED J-08" },
+  { id: null, ing: "LCL-6300857054", obras: "6300872752", desc: "DS101_RENOVACIÓN CABLES SUB_01937S_3" },
+  { id: null, ing: "LCL-6300815513", obras: "6300835456", desc: "DS101_RENOVACIÓN CABLES SUB_05328C_1" },
+  { id: null, ing: "LCL-6300818330", obras: "6300957909", desc: "DD001_ASOCIACION PRO VIVIENDA PAZ Y DESARROLLO SAN PEDRO SAN PABLO" },
+  { id: null, ing: "LCL-6300836999", obras: "SUPEDITADO", desc: "DC002_NORMALIZACIÓN REDES D_00033S_07_09" },
+  { id: null, ing: "LCL-6300896809", obras: "6300907081", desc: "QS002_RENOVACIÓN CABLES SUB_00262S_2" },
+  { id: null, ing: "LCL-6300911963", obras: "6300933766", desc: "DC003__06615C_1 Y 4" },
+  { id: null, ing: "LCL-6300834845", obras: "6300873749", desc: "DD001_ASOCIACION DE PROPIETARIOS LOS PORTALES DE MEDIA LUNA - ANEXO 22" },
+  { id: null, ing: "LCL-6300827388", obras: "REVALORIZAR 5200000069", desc: "DD001_AGRUPACION FAMILIAR DANIEL ALCIDES CARRION" },
+  { id: null, ing: "LCL-6300867217", obras: "6300881666", desc: "DC002_NORMALIZACIÓN REDES D_00187S_7" },
+  { id: null, ing: "LCL-6300899185", obras: "6300938981", desc: "DC002__00033S_11" },
+  { id: null, ing: "LCL-6300933068", obras: "6300955156", desc: "P12_PUNTO CALIENTE_149°C_P-29_00027S" },
+  { id: null, ing: "LCL-6300835349", obras: "6300881669", desc: "MRDX0_Movimiento de Redes SDS_06129C" },
+  { id: null, ing: "LCL-6300831020", obras: "6300904906", desc: "MRDX0_2329011_AFECTA REDES ENTRE ESTACION CENTRAL DEL METROPOLITANO" },
+  { id: null, ing: "LCL-6300906026", obras: "6300938980", desc: "DPT21_Construcción de nuevo alim 10kV CO-05, A 01076s y CU" },
+  { id: null, ing: "LCL-6300906027", obras: "6300933771", desc: "DPT21_Construcción de nuevo alim 10kV CU-03, A 01001S Refor" },
+  { id: null, ing: "LCL-6300541735", obras: "REVALORIZAR 5200000069", desc: "DD008 Nuevo alim 10kV Z-19, descarga alim Z-06 y CG-05 (Definitivo remodelación SE-323S)_ relacionado LCL-6300666998)" },
+  { id: null, ing: "LCL-6300884135", obras: "REVALORIZAR 5200000069", desc: "DD001_AGRUPACION FAMILIAR SAN IGNACIO - ANEXO 22" },
+  { id: null, ing: "LCL-6300868473", obras: "6300878906", desc: "QSC08_PLAN MANTENIMIENTO CA_00033S_1" },
+  { id: null, ing: "LCL-6300905674", obras: "6300911172", desc: "MRDX0_2338990_Replanteo Proyecto Av. Próceres y Wiesse" },
+  { id: null, ing: "LCL-6300297305", obras: "6300714445", desc: "DD008_AMPLIACION ALIMENTADORES MT _Q-20" },
+  { id: null, ing: "LCL-6300714443", obras: "6300296092", desc: "DD008_AMPLIACION ALIMENTADORES MT 00976S_T-07" },
+  { id: null, ing: "LCL-6300885338", obras: "6300896955", desc: "DC002_Normalización redes de MT/BT por calidad de producto_06615C_-" },
+  { id: null, ing: "LCL-6300898445", obras: "6300927654", desc: "QSC08_Complemento de reforma SED 00033S -8SP" }
+];
+
+let selectedLCL = null;
+let selectedFiles = [];
+
+function renderList(filter) {
+  const list = document.getElementById("lclList");
+  const q = (filter || "").toLowerCase();
+  const filtered = LCL_DATA.filter(l =>
+    !q || l.ing.toLowerCase().includes(q) || l.obras.includes(q) ||
+    l.desc.toLowerCase().includes(q) || String(l.id).includes(q)
+  );
+  if (!filtered.length) { list.innerHTML = '<div class="empty-state">No se encontraron LCLs</div>'; return; }
+  list.innerHTML = filtered.map(l => `
+    <div class="lcl-card ${selectedLCL && selectedLCL.id === l.id ? 'selected' : ''}" onclick="selectLCL(${l.id})">
+      <div class="lcl-card-top"><span class="lcl-ing">${l.ing}</span><span class="lcl-id">ID ${l.id}</span></div>
+      <div class="lcl-desc">${l.desc}</div>
+      <div class="lcl-obras">Obras: ${l.obras}</div>
+    </div>`).join("");
+}
+
+function selectLCL(id) {
+  selectedLCL = LCL_DATA.find(l => l.id === id);
+  renderList(document.getElementById("searchInput").value);
+  document.getElementById("btnStep1").disabled = false;
+}
+
+document.getElementById("searchInput").addEventListener("input", e => renderList(e.target.value));
+document.getElementById("btnStep1").addEventListener("click", () => {
+  if (!selectedLCL) return;
+  document.getElementById("bannerIng").textContent = selectedLCL.ing;
+  document.getElementById("bannerDesc").textContent = selectedLCL.desc + " · Obras: " + selectedLCL.obras;
+  goStep(1);
+});
+document.getElementById("btnBack").addEventListener("click", () => goStep(0));
+document.getElementById("uploadZone").addEventListener("click", () => document.getElementById("fileInput").click());
+document.getElementById("fileInput").addEventListener("change", e => {
+  selectedFiles = [...selectedFiles, ...Array.from(e.target.files)];
+  renderThumbs();
+  document.getElementById("btnStep2").disabled = selectedFiles.length === 0;
+  e.target.value = "";
+});
+
+function renderThumbs() {
+  document.getElementById("photoGrid").innerHTML = selectedFiles.map((f, i) =>
+    `<div class="photo-thumb"><img src="${URL.createObjectURL(f)}" /><button class="photo-thumb-remove" onclick="removePhoto(${i})">×</button></div>`
+  ).join("");
+}
+
+function removePhoto(i) {
+  selectedFiles.splice(i, 1);
+  renderThumbs();
+  document.getElementById("btnStep2").disabled = selectedFiles.length === 0;
+}
+
+document.getElementById("btnStep2").addEventListener("click", async () => {
+  const btn = document.getElementById("btnStep2");
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+  const nota = document.getElementById("notaField").value;
+  let ok = 0;
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const file = selectedFiles[i];
+    try {
+      const base64 = await toBase64(file);
+      await fetch(POWER_AUTOMATE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_origen: selectedLCL.id, lcl_ing: selectedLCL.ing, lcl_obras: selectedLCL.obras, descripcion: selectedLCL.desc, nombre_archivo: file.name, archivo_base64: base64, nota: nota })
+      });
+      ok++;
+    } catch(e) { console.error(e); }
+  }
+  if (ok > 0) {
+    document.getElementById("successDetail").textContent = ok + " foto" + (ok>1?"s":"") + " enviada" + (ok>1?"s":"") + " para " + selectedLCL.ing + " (ID " + selectedLCL.id + ").";
+    goStep(2);
+  } else {
+    alert("Error al enviar. Revisa tu conexión.");
+    btn.disabled = false;
+    btn.textContent = "Enviar fotos";
+  }
+});
+
+document.getElementById("btnNuevo").addEventListener("click", () => {
+  selectedLCL = null; selectedFiles = [];
+  document.getElementById("photoGrid").innerHTML = "";
+  document.getElementById("notaField").value = "";
+  document.getElementById("searchInput").value = "";
+  document.getElementById("btnStep1").disabled = true;
+  document.getElementById("btnStep2").disabled = true;
+  renderList(""); goStep(0);
+});
+
+function goStep(n) {
+  document.querySelectorAll(".step").forEach((s,i) => s.classList.toggle("active", i===n));
+  [0,1,2].forEach(i => document.getElementById("dot"+i).classList.toggle("active", i===n));
+}
+
+function toBase64(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(",")[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+renderList("");
+</script>
+</body>
+</html>
