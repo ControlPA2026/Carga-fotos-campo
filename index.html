@@ -3,106 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carga de campo</title>
+<title>Carga de campo — PA Peru</title>
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; margin: 0; background: #F0F4FA; color: #1a1a2e; }
-.header { background: #1B3A6B; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; background: #F0F4FA; color: #1a1a2e; min-height: 100vh; }
+.header { background: #1B3A6B; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 .header img { height: 38px; }
 .header-text { text-align: right; }
 .header-text h1 { font-size: 14px; color: #fff; margin: 0; font-weight: 600; }
-.header-text p { font-size: 11px; color: rgba(255,255,255,0.65); margin: 2px 0 0; }
+.header-text p { font-size: 11px; color: rgba(255,255,255,0.6); margin: 2px 0 0; }
 .progress { height: 4px; background: #c8d6f0; }
-.progress-bar { height: 4px; background: #2D5A9E; transition: width 0.3s; }
+.pbar { height: 4px; background: #2D5A9E; transition: width 0.3s; }
 .container { padding: 16px; max-width: 480px; margin: 0 auto; }
 .step { display: none; }
 .step.active { display: block; }
-.tag { display: inline-block; background: #E8EFF9; color: #2D5A9E; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.04em; }
+.tag { display: inline-block; background: #E8EFF9; color: #2D5A9E; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
 h2 { font-size: 20px; font-weight: 700; color: #1B3A6B; margin: 0 0 4px; }
 .sub { font-size: 13px; color: #6B7280; margin: 0 0 18px; line-height: 1.5; }
+.field { margin-bottom: 14px; }
 label { display: block; font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
 select, input[type=text], textarea {
   width: 100%; padding: 11px 13px; border: 1.5px solid #DDE1E9;
-  border-radius: 10px; font-size: 14px; background: #fff;
-  color: #1a1a2e; box-sizing: border-box; font-family: inherit;
-  appearance: none; -webkit-appearance: none; outline: none;
+  border-radius: 10px; font-size: 14px; background: #fff; color: #1a1a2e;
+  font-family: inherit; outline: none;
+  -webkit-appearance: none; appearance: none;
 }
-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
-select:focus, input[type=text]:focus, textarea:focus { border-color: #2D5A9E; box-shadow: 0 0 0 3px rgba(45,90,158,0.1); }
-.field { margin-bottom: 14px; }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
+}
+select:focus, input:focus, textarea:focus { border-color: #2D5A9E; box-shadow: 0 0 0 3px rgba(45,90,158,0.1); }
+.cargo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+.cargo-card { background: #fff; border: 1.5px solid #DDE1E9; border-radius: 11px; padding: 14px 8px; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cargo-card.selected { border-color: #2D5A9E; background: #E8EFF9; }
+.cargo-card svg { display: block; margin: 0 auto 6px; color: #2D5A9E; }
+.cargo-card span { font-size: 12px; font-weight: 600; color: #1B3A6B; }
 .search-wrap { position: relative; margin-bottom: 10px; }
 .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #6B7280; pointer-events: none; }
 .search-wrap input { padding-left: 34px; }
-.lcl-list { max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; }
-.lcl-card { background: #fff; border: 1.5px solid #DDE1E9; border-radius: 10px; padding: 11px 13px; cursor: pointer; }
+.lcl-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; }
+.lcl-card { background: #fff; border: 1.5px solid #DDE1E9; border-radius: 10px; padding: 11px 13px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .lcl-card.selected { border-color: #2D5A9E; background: #E8EFF9; }
-.lcl-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.lcl-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
 .lcl-ing { font-size: 13px; font-weight: 700; color: #1B3A6B; }
 .lcl-id { font-size: 10px; color: #6B7280; background: #F0F4FA; padding: 2px 7px; border-radius: 20px; }
 .lcl-desc { font-size: 12px; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lcl-obras { font-size: 11px; color: #6B7280; margin-top: 1px; }
-.banner { background: #E8EFF9; border: 1.5px solid #2D5A9E; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+.banner { background: #E8EFF9; border: 1.5px solid #2D5A9E; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
 .banner-label { font-size: 10px; font-weight: 700; color: #2D5A9E; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
 .banner-main { font-size: 14px; font-weight: 700; color: #1B3A6B; }
 .banner-sub { font-size: 12px; color: #6B7280; margin-top: 1px; }
 .upload-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
-.tab { flex: 1; padding: 9px; border: 1.5px solid #DDE1E9; border-radius: 9px; background: #fff; font-size: 13px; font-weight: 600; color: #6B7280; cursor: pointer; text-align: center; }
+.tab { flex: 1; padding: 9px; border: 1.5px solid #DDE1E9; border-radius: 9px; background: #fff; font-size: 13px; font-weight: 600; color: #6B7280; cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent; }
 .tab.active { border-color: #2D5A9E; background: #E8EFF9; color: #2D5A9E; }
-.upload-zone { border: 2px dashed #c8d6f0; border-radius: 10px; padding: 28px 16px; text-align: center; background: #fff; cursor: pointer; margin-bottom: 12px; }
+.upload-zone { border: 2px dashed #c8d6f0; border-radius: 10px; padding: 26px 16px; text-align: center; background: #fff; cursor: pointer; margin-bottom: 12px; -webkit-tap-highlight-color: transparent; }
 .upload-zone svg { width: 30px; height: 30px; color: #2D5A9E; display: block; margin: 0 auto 8px; }
 .upload-zone p { font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 3px; }
 .upload-zone small { font-size: 12px; color: #6B7280; }
 input[type=file] { display: none; }
 .file-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
-.file-thumb { position: relative; aspect-ratio: 1; border-radius: 9px; overflow: hidden; background: #F0F4FA; border: 1px solid #DDE1E9; display: flex; align-items: center; justify-content: center; }
-.file-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.file-thumb .icon { font-size: 26px; }
-.file-thumb .fname { position: absolute; bottom: 3px; left: 0; right: 0; font-size: 9px; color: #6B7280; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px; }
-.file-thumb button { position: absolute; top: 3px; right: 3px; background: rgba(27,58,107,0.7); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.btn { width: 100%; padding: 14px; border: none; border-radius: 11px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.btn-primary { background: #1B3A6B; color: #fff; box-shadow: 0 2px 8px rgba(27,58,107,0.2); }
-.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-secondary { background: #fff; color: #1B3A6B; border: 1.5px solid #2D5A9E; margin-top: 10px; }
-.success { text-align: center; padding: 24px 0; }
-.success-circle { width: 68px; height: 68px; border-radius: 50%; background: #E8EFF9; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
-.success-circle svg { width: 34px; height: 34px; color: #2D5A9E; }
-.success h2 { margin-bottom: 8px; }
-.success p { font-size: 14px; color: #6B7280; margin-bottom: 16px; }
-.success-card { background: #E8EFF9; border: 1.5px solid #2D5A9E; border-radius: 10px; padding: 13px 14px; text-align: left; margin-bottom: 4px; }
-.success-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
-.success-row span:first-child { color: #6B7280; }
-.success-row span:last-child { color: #1B3A6B; font-weight: 700; }
+.file-thumb { position: relative; aspect-ratio: 1; border-radius: 9px; overflow: hidden; background: #F0F4FA; border: 1px solid #DDE1E9; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.file-thumb img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+.file-thumb .ficon { font-size: 24px; }
+.file-thumb .fname { font-size: 9px; color: #6B7280; text-align: center; padding: 0 4px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+.file-thumb .rm { position: absolute; top: 3px; right: 3px; background: rgba(27,58,107,0.75); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; }
+.btn { width: 100%; padding: 14px; border: none; border-radius: 11px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; -webkit-tap-highlight-color: transparent; }
+.btn-p { background: #1B3A6B; color: #fff; box-shadow: 0 2px 8px rgba(27,58,107,0.2); }
+.btn-p:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+.btn-s { background: #fff; color: #1B3A6B; border: 1.5px solid #2D5A9E; margin-top: 10px; }
+.success { text-align: center; padding: 20px 0; }
+.suc-circle { width: 68px; height: 68px; border-radius: 50%; background: #E8EFF9; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+.suc-circle svg { width: 34px; height: 34px; color: #2D5A9E; }
+.suc-card { background: #E8EFF9; border: 1.5px solid #2D5A9E; border-radius: 10px; padding: 13px 14px; text-align: left; margin: 14px 0; }
+.suc-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+.suc-row span:first-child { color: #6B7280; }
+.suc-row span:last-child { color: #1B3A6B; font-weight: 700; max-width: 60%; text-align: right; }
 .empty { text-align: center; padding: 24px; color: #6B7280; font-size: 13px; }
+textarea { resize: none; }
 </style>
 </head>
 <body>
-
 <div class="header">
   <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCABSAQEDASIAAhEBAxEB/8QAHAABAAIDAQEBAAAAAAAAAAAAAAYHBAUIAgED/8QAQhAAAQQBAgQEAwIJCgcAAAAAAQACAwQFBhEHEiExE0FRYQgUIlJxFRcYIzJWgZGxJDVCU3J2k6Gl0hZUY4KUwdH/xAAbAQEBAQADAQEAAAAAAAAAAAAAAQIDBAYFB//EACsRAAIBAgQEBQUBAAAAAAAAAAABEQIEAwUSUSExQWEGEyIygRQVceHwof/aAAwDAQACEQMRAD8A7LREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAERCQBuTsAgPj3NYwve4Na0bkk7ABc6cYeO9uLIy4LRDm7sd4cl4N53Pd22jH/tY/xE8XHW3z6P0vPzQk+HctRHcyH+rZt5ep8+y3Pw78IBi2Q6s1VUByDgHUqsg38Bv23D7X8FtJJSz3OW5Va5Va/cMzplv2Ub92v6Fz6IhmG0Bxt1NEMlYy96gJRzN+avvjc4f2Wnp+5bD8TvGP9bv9TmVy8UuJmC0FXiZbbJdyEw3ipQdXlv2j6BVx+UtU/UzJ/wCIP/impndtsyz69o822t6FQ+XpX+S+JofxO8Y/1u/1OZeLHCPi7XgfPY1myGGNpc978pMA0DuSVaHDDivc13lzVo6PvVakQ3ntzSgMj9B26n2C3HFzSw1Pg5oslqixhcNEzxLLYWtAeB1+px8vZNTOvVn+ZW91Tb3aoo39Kqa+KZ47I47s6m1NBZlhGp8pMI3lviMvSlrtj3HXsrr+FXW+oMhqSzpvJ3p71R1d08bp3l743NIHRx67Hf8AyVIWcVXv6pfitKC3kK8k3hVC9m0kvlvsOy674I8M6ugsOZrJZPmbTR8xKO0Y+w32HmfNbqag9N4turHAy54eJStda9KiH+e0focaLdurldDNq2p4GzaigjlEchaJGkHdrtu49irGVZccf530D/eWD+BVmrjfJH40uZUWpPiC0Rgc9dw1yDKOsU5nRSFkALSR326rX/lM8P8A/lsx/wCOP9yozI5PA4j4jMnkNS1hZxcWSlM0Zi8Tfvt9Pn1VpW+KHAKStIw6Wjk3afo/BrRv7b+S5HStjj1vctfhzxS0hryR9fCXni4xvO6rOzkk29R5H9im64r+GOjayHGuDIYunLFQhdLI89eWOMg7NJ/aAux87k6mFw1zLX5BHVqQumlcfING6zXTDhGqKpUshnE3i3pTQGRr4/MutS2po/E8OvGHljfIu6jbdbzh1rXCa7wP4YwckhhbIY5I5W8r2OHkQuVtB4Szxw4u5XMZrnZjWtdJKQ7YRt2LYmA+3T9yzeA2ftcMeMN3R2ZfyU7k/wApISfpbJv+bk+477f9yroUdzKrc9jsBERcZyhFQdXixxJzetM/gNL6Wxd0YmzJE5z5HNPIHua0nr3Oyycfxe1liOIGL0trnStWj+EnNbFJWlJI5jsD3O437rWhmdaLzRQPUvF3QOn8nJjb2bY+1EeWWOBhk8M+jtuxWxi4i6Nl0tJqaLO1n4uJ4jkmaSeRx6AEdwVIZZRK0UGpcW+H97KV8bS1DBZsTtLmiMEgANLjufI7ArDzWr8vqjANtcK7OLvOisGO3YtOLWQgDfoD3SGNSLFRRbhxqjH6jxL2Vs3Xy9ymRHdlgjLGCQ+QB8uilKj4FXEIiIAiIgCIiAKlvim1tkdOYGrhMW90MuTa8Szju2MdCAfInfurpUM4rcPcXr/ER1Lsj61mAl1ewwblpPcEeYVXPifWyPHtre/w8W6U0J8ev4cdmcOQyyQzsnieWSxuD2OHcEdQVc/BepxJ1/lvFl1Tla2EruHzFgSdXn7DPf8AgpHV+GbltRG1qVklcPBlayuWuc3fqAd+hV+adwuN0/iIMTiKrKtSBvKxjf4n1J9VqtpnvvEXi2xqwNNpFdb6un2r5XMxW4PT2OiNmzUqFzWhr7NsNc8ger3L8fmtG/12D/fEohxg4cZ7X9qKIamZQxcI3ZVbCTzP83OII39lXv5M1n9a2f4Dv9yyqUeSs7PL8bBVdze6a30VNTj5Lvuaq0bgqL5pcziacA6kMlYNz7AdyuaONfFG9xCyUWndMsstxHiBoY0EPuP36Egf0fQKWQfDKTKPmdUh0Y7htc7/AOZVpcOuFWldEvFmjXdav7bfNWNi8f2R2b+xVQj6drj5Hk9X1GHiPHxV7eEJPfj+zTcB+FlbRWOblMkxk2bssHMSNxXaf6Dff1KtREUbk8jf32Nf49WPjuan/QuxWXHH+d9A/wB5YP4FWaotrzSkmprmnrDLrawxGUjvuBZzeKG7/T7d+6lKPkdJczkLDaXs5H4nbRymCnsYyXJSl5mgJic3rsd9ttl0mOHOhQQRpXFbj/oBSnlbvvsN/XZfVXU2RUpFF8ZtY6n4d52ni9C6WpfJT1vEldFQJHPzEdeTby9VpPiZ1PqPJ6KwWm8fi7z58jViuZIwQOLW7gER9B9rc7ewXRxaD3AP3hC1p7tH7kVUdA6W+pSvD7hJPW4Hf8Om7ListlS2zbsMB52HoQzoR2GwVScX+Bef0njIc/QytrPP8YNn5YneLH9l3ckjddjIQCNiN1VW0yOhNFDnibrOvwOxuboYaeXPQWW0rkdis8l2wP18o2PUbdfdTvgZqnUWrdHyZPU2PFK42y6NrBE6MFoA2Ox+9Tzlbttyjb7l9AAGwACja2Kk9zlnQXDu/qfi3rg2sjnMDCy5I+OaqXReNvK/pv5jbr+1Wbg+BuCxucZnreYy+ZyNdpNV12fmDH7HY++x6q1w6MOLQ5nN5jfqjXscdmvaSPIFHUyKhI4q03Qv6KzmaparzWb07bkkO0kOJbbZb6nqHO9e/p1Wdi9M3PxS6xvY2nn5YLstcMbapiPxnCTcvY1pO/T2812ITXm3JMUnL0PY7L6Hw8mwfHyj3Gy15hPLKo4T8PMBT4WY+zFp+CLNzUHl00rPzviuaR1J7d9lVvBjW1nh5hM5pTKaTztjKz2XuhjgrEhxLdtjv26+fouqjNC1rSZYwCdh9Q6lHmFm8jzG3bu47Db9qzq3Lp2KI+D2lkqmO1RJksfYpST3mPDJoy3ydvtv6K+l5aWEAtLSHdQR5r7uNt9wo3Lk1SoUH1E3G+2/VefEZzcvO3m9N+qhT0i8skjeSGPa4jodjvsvSAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgKPrcM9QZKW/k7N2XGzMy9qzEWOkNiWPmdyM3LuXlII8uy0lPh/r6iKFyu+eKzNjrLB8u97XsncDyiYucRtt2cB3VvWNeYqHXo0iYpXTmEu8cEeH4u3N4P9st6qM47jPjZLVuPI4W7j2V4pZB4jmmQ8h25SzuCfJblmIpIjltKZi1R8LSem8zhP5B4WS+Ymf/KZC9mwaC76iNnEuG3QrN1noLMYvE4gUas2RHzgfbZTik3DOTb6m+J9XX3CmV3iaMNu3UmnMhjJJaxnqN5myeOeZrfDG3Z+729D6rIdr63Tmhr5nS+Qx8s9iCGIuc1zH+K7l/SHm3zCSxCKs1VpbN34Mca2m83G2KlK1vKx/J4pduA6Pn5mHts/crZw6b1U+1FY1JhMndxAsROuY+Cw57nH5drQ4bEF7Wu33A81YlbiRiLGa1Bi4oJi/DwSTNkJHLa8MfnBH6lp2B+9a13FWGhXjmz2AvY9lqmbdIhzZBYA2+gbdnfUO/qkskIh9HSGtLGUoWMUMlg61Wzas4yGeYvEDNm8sUo3/RcQ7odyAV+X4D4l5zS1LDnH2cdYjtWshae+yWDxTK4wsa7zaO+3bYhTnJ8TJsPDZbmdK5OtcZU+br12FshmZzBruo7FvMCfZbjhxrWDWVW5JHSfUlqSiN7DK14O43BBCSywiJ6fzOqcdqqxlMvpTOTm9jqsb2wM52RzM5hJ032G/Q7jyUaw2F1DFqfLz2tO5d8ti7bfBKY3j6H83JtLz7N6EbfT0V+opqLpKR4Fad1FhdVuls4rIV6MlDw55Lpc14lDug23IkJ+0NldyIo3JUoCIihQiIgCIiAIiIAiIgCIiAIiIAiIgCIiAIiIAiIgIRZ4WaPsySWZqUrr8lo2n3RM4TF5O/6Xpt0+7osKDhBpf5kyXZb9+JscsUMVibcRNk/S67bn23PRWIissmlEFh4YYJ8czMrdymXLoDXhdbsFxrx7g/Rt2du0Hm79AvUPDPElrn38pmMjY8SN8c9m0XOjEZ3aGjsOp79ypwiSxpRB4+FWjYY4vlqElexGHtdZjlIllD2kP5z5777n32XmLhbpsxGK9Nksg0VTVhFmyXeBGdt+T0PQdfZTpEliEQF/CzDWIbH4RyuavWZIRBHZltnxIIw4ODWEduoG/qtzojRmM0o67NUmsWLV5zXWZ5iN3lo2HQAAdFJUSWIQREUKEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREB//2Q==" alt="PA Peru">
-  <div class="header-text">
-    <h1>Carga de campo</h1>
-    <p>Control de liquidaciones</p>
-  </div>
+  <div class="header-text"><h1>Carga de campo</h1><p>Control de liquidaciones</p></div>
 </div>
-<div class="progress"><div class="progress-bar" id="pbar" style="width:25%"></div></div>
+<div class="progress"><div class="pbar" id="pbar" style="width:20%"></div></div>
 
 <div class="container">
 
+<!-- PASO 1: CARGO -->
 <div class="step active" id="s0">
-  <div class="tag">PASO 1 DE 4</div>
+  <div class="tag">PASO 1 DE 5</div>
+  <h2>Selecciona tu cargo</h2>
+  <p class="sub">Elige el rol con el que vas a ingresar.</p>
+  <div class="cargo-grid">
+    <div class="cargo-card" id="c0" onclick="selCargo('Jefe de Cuadrilla',0)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Jefe de Cuadrilla</span>
+    </div>
+    <div class="cargo-card" id="c1" onclick="selCargo('Supervisor',1)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/><polyline points="16 12 18 14 22 10"/></svg>
+      <span>Supervisor</span>
+    </div>
+    <div class="cargo-card" id="c2" onclick="selCargo('Liquidador',2)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Liquidador</span>
+    </div>
+  </div>
+  <button class="btn btn-p" id="btn0" onclick="goStep(1)" disabled>Continuar</button>
+</div>
+
+<!-- PASO 2: NOMBRE -->
+<div class="step" id="s1">
+  <div class="tag">PASO 2 DE 5</div>
   <h2>Quien eres?</h2>
   <p class="sub">Selecciona tu nombre de la lista.</p>
   <div class="field">
-    <label>Jefe de cuadrilla</label>
-    <select id="selectPersona" onchange="onPersonaChange()">
+    <label id="selectLabel">Nombre</label>
+    <select id="selectNombre" onchange="onNombreChange()">
       <option value="">-- Selecciona tu nombre --</option>
-      <optgroup label="OBRAS CLIEN. (ELECT)"><option value="ENRIQUE COCHACHIN SAUL">ENRIQUE COCHACHIN SAUL</option><option value="HUACO HUAMAN MARTIN SANTIAGO">HUACO HUAMAN MARTIN SANTIAGO</option><option value="IZAGUIRRE MUNOZ FLORENCIO JAVIER">IZAGUIRRE MUNOZ FLORENCIO JAVIER</option><option value="CHARA ANTEZANA YONNY">CHARA ANTEZANA YONNY</option><option value="CALERO GOMEZ ELVIS AUGUSTO">CALERO GOMEZ ELVIS AUGUSTO</option><option value="VILNER MAZA JOSE LUIS">VILNER MAZA JOSE LUIS</option><option value="SANTILLAN MEZA ABIMAEL">SANTILLAN MEZA ABIMAEL</option></optgroup><optgroup label="OBRAS DE INVERSION"><option value="GUTIERREZ BUITRON WILLE MISAEL">GUTIERREZ BUITRON WILLE MISAEL</option><option value="NAJARRO QUISPE VICTOR">NAJARRO QUISPE VICTOR</option><option value="SANDOVAL SOLANO JHONATAN NILTON">SANDOVAL SOLANO JHONATAN NILTON</option><option value="SIESQUEN SANTAMARIA FLORENTINO">SIESQUEN SANTAMARIA FLORENTINO</option><option value="SAAVEDRA VARGAS RUBEN ALEX">SAAVEDRA VARGAS RUBEN ALEX</option><option value="AYAC GARCIA NICOLAS">AYAC GARCIA NICOLAS</option><option value="PISCOYA PISCOYA JOSE ADOLFO">PISCOYA PISCOYA JOSE ADOLFO</option><option value="RODRIGUEZ AQUINO GILTON JULIO">RODRIGUEZ AQUINO GILTON JULIO</option><option value="LLAURE ALAYO ZORIANO">LLAURE ALAYO ZORIANO</option><option value="ECHACCAYA SUAREZ JOEL TEODOLFO">ECHACCAYA SUAREZ JOEL TEODOLFO</option><option value="RAMOS HERRERA ALEX RICARDO">RAMOS HERRERA ALEX RICARDO</option><option value="ZAMBRANO JULIAN LUIS HECTOR">ZAMBRANO JULIAN LUIS HECTOR</option><option value="PINTADO MORALES JUAN MANUEL">PINTADO MORALES JUAN MANUEL</option><option value="SANCHEZ CHAVEZ FRANCISCO LUCIO">SANCHEZ CHAVEZ FRANCISCO LUCIO</option><option value="SIPAN CONDOR JUAN MANUEL">SIPAN CONDOR JUAN MANUEL</option><option value="AGUILAR AVENDANO JESUS CLAUDIO">AGUILAR AVENDANO JESUS CLAUDIO</option></optgroup>
     </select>
   </div>
-  <button class="btn btn-primary" id="btn0" onclick="goStep(1)" disabled>Continuar</button>
+  <button class="btn btn-p" id="btn1" onclick="goStep(2)" disabled>Continuar</button>
+  <button class="btn btn-s" onclick="goStep(0)">Volver</button>
 </div>
 
-<div class="step" id="s1">
-  <div class="tag">PASO 2 DE 4</div>
+<!-- PASO 3: LCL -->
+<div class="step" id="s2">
+  <div class="tag">PASO 3 DE 5</div>
   <h2>Selecciona tu LCL</h2>
   <p class="sub">Busca por codigo, descripcion o numero de obra.</p>
   <div class="search-wrap">
@@ -110,12 +138,13 @@ input[type=file] { display: none; }
     <input type="text" id="searchLCL" placeholder="Buscar LCL..." oninput="renderLCL(this.value)">
   </div>
   <div class="lcl-list" id="lclList"></div>
-  <button class="btn btn-primary" id="btn1" onclick="goStep(2)" disabled>Continuar</button>
-  <button class="btn btn-secondary" onclick="goStep(0)">Volver</button>
+  <button class="btn btn-p" id="btn2" onclick="goStep(3)" disabled>Continuar</button>
+  <button class="btn btn-s" onclick="goStep(1)">Volver</button>
 </div>
 
-<div class="step" id="s2">
-  <div class="tag">PASO 3 DE 4</div>
+<!-- PASO 4: ARCHIVOS -->
+<div class="step" id="s3">
+  <div class="tag">PASO 4 DE 5</div>
   <h2>Sube los archivos</h2>
   <p class="sub">Fotos o documentos del trabajo realizado.</p>
   <div class="banner">
@@ -138,19 +167,20 @@ input[type=file] { display: none; }
     <label>Nota (opcional)</label>
     <textarea id="nota" rows="3" placeholder="Observacion o descripcion del trabajo..."></textarea>
   </div>
-  <button class="btn btn-primary" id="btn2" onclick="enviar()" disabled>Enviar</button>
-  <button class="btn btn-secondary" onclick="goStep(1)">Cambiar LCL</button>
+  <button class="btn btn-p" id="btn3" onclick="enviar()" disabled>Enviar</button>
+  <button class="btn btn-s" onclick="goStep(2)">Cambiar LCL</button>
 </div>
 
-<div class="step" id="s3">
+<!-- PASO 5: EXITO -->
+<div class="step" id="s4">
   <div class="success">
-    <div class="success-circle">
+    <div class="suc-circle">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
     </div>
     <h2>Enviado!</h2>
-    <p id="sucMsg"></p>
-    <div class="success-card" id="sucCard"></div>
-    <button class="btn btn-primary" onclick="reset()" style="margin-top:16px">Cargar otro LCL</button>
+    <p id="sucMsg" style="font-size:14px;color:#6B7280;margin-bottom:0"></p>
+    <div class="suc-card" id="sucCard"></div>
+    <button class="btn btn-p" onclick="resetApp()">Cargar otro LCL</button>
   </div>
 </div>
 
@@ -158,7 +188,7 @@ input[type=file] { display: none; }
 
 <script>
 var PA_URL = "https://default24c2e1716e8e4193b3b6fc1b6bb306.bb.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/028be164232349ec967efb505d19707d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-ZoH5WozFVq6whadr9yz2GnijKhhkX29YfzmpnhWoLI";
-var LCL_DATA = [
+var LCL_DATA=[
   {id:20,ing:"LCL-6300613287",obras:"6300619416",desc:"COMPAÑIA DE INVERSIONES INMOBILIARIAS SANTA INES S.A.C."},
   {id:21,ing:"LCL-6300688096",obras:"6300701534",desc:"BECA INMOBILIARIA PERU"},
   {id:22,ing:"LCL-6300742376",obras:"6300753768",desc:"PAZ REAL ESTATE S.A.C."},
@@ -441,123 +471,199 @@ var LCL_DATA = [
   {id:227,ing:"LCL-6300885338",obras:"6300896955",desc:"DC002_Normalización redes de MT/BT por calidad de producto_06615C_-"},
   {id:250,ing:"LCL-6300898445",obras:"6300927654",desc:"QSC08_Complemento de reforma SED 00033S -8SP"},
 ];
-var selPersona = null;
+var PERSONAL = {
+  "Jefe de Cuadrilla": [
+    "ENRIQUE COCHACHIN SAUL",
+    "HUACO HUAMAN MARTIN SANTIAGO",
+    "IZAGUIRRE MUNOZ FLORENCIO JAVIER",
+    "CHARA ANTEZANA YONNY",
+    "CALERO GOMEZ ELVIS AUGUSTO",
+    "VILNER MAZA JOSE LUIS",
+    "SANTILLAN MEZA ABIMAEL",
+    "GUTIERREZ BUITRON WILLE MISAEL",
+    "NAJARRO QUISPE VICTOR",
+    "SANDOVAL SOLANO JHONATAN NILTON",
+    "SIESQUEN SANTAMARIA FLORENTINO",
+    "SAAVEDRA VARGAS RUBEN ALEX",
+    "AYAC GARCIA NICOLAS",
+    "PISCOYA PISCOYA JOSE ADOLFO",
+    "RODRIGUEZ AQUINO GILTON JULIO",
+    "LLAURE ALAYO ZORIANO",
+    "ECHACCAYA SUAREZ JOEL TEODOLFO",
+    "RAMOS HERRERA ALEX RICARDO",
+    "ZAMBRANO JULIAN LUIS HECTOR",
+    "PINTADO MORALES JUAN MANUEL",
+    "SANCHEZ CHAVEZ FRANCISCO LUCIO",
+    "SIPAN CONDOR JUAN MANUEL",
+    "AGUILAR AVENDANO JESUS CLAUDIO"
+  ],
+  "Supervisor": [
+    "william.huarcaya",
+    "wilder.guerrero",
+    "eduardo.pujada",
+    "joseli.huaita",
+    "juan.rojas",
+    "precilio.ramirez"
+  ],
+  "Liquidador": [
+    "flor.acedo",
+    "onorio.junes",
+    "maylli.rosales",
+    "dante.garcia",
+    "brenda.paiva",
+    "romina.marrufo",
+    "oscar.japay"
+  ]
+};
+
+var selCarg = null;
+var selNombre = null;
 var selLCL = null;
 var selFiles = [];
 var upMode = "foto";
+var STEPS = 5;
 
-function onPersonaChange() {
-  var v = document.getElementById("selectPersona").value;
-  selPersona = v || null;
-  document.getElementById("btn0").disabled = !v;
+function selCargo(cargo, idx) {
+  selCarg = cargo;
+  [0,1,2].forEach(function(i){ document.getElementById("c"+i).className="cargo-card"+(i===idx?" selected":""); });
+  document.getElementById("btn0").disabled = false;
+}
+
+function populateNombres() {
+  var sel = document.getElementById("selectNombre");
+  sel.innerHTML = '<option value="">-- Selecciona tu nombre --</option>';
+  var lista = PERSONAL[selCarg] || [];
+  lista.forEach(function(n){
+    var opt = document.createElement("option");
+    opt.value = n; opt.textContent = n;
+    sel.appendChild(opt);
+  });
+  document.getElementById("selectLabel").textContent = selCarg;
+  selNombre = null;
+  document.getElementById("btn1").disabled = true;
+}
+
+function onNombreChange() {
+  selNombre = document.getElementById("selectNombre").value || null;
+  document.getElementById("btn1").disabled = !selNombre;
 }
 
 function renderLCL(q) {
   q = (q||"").toLowerCase();
-  var filtered = LCL_DATA.filter(function(l) {
-    return !q || l.ing.toLowerCase().indexOf(q)>=0 || l.obras.indexOf(q)>=0 || l.desc.toLowerCase().indexOf(q)>=0 || String(l.id).indexOf(q)>=0;
+  var filtered = LCL_DATA.filter(function(l){
+    return !q||l.ing.toLowerCase().indexOf(q)>=0||l.obras.indexOf(q)>=0||l.desc.toLowerCase().indexOf(q)>=0||String(l.id).indexOf(q)>=0;
   });
   var el = document.getElementById("lclList");
-  if (!filtered.length) { el.innerHTML = '<div class="empty">No se encontraron LCLs</div>'; return; }
-  el.innerHTML = filtered.map(function(l) {
-    return '<div class="lcl-card' + (selLCL && selLCL.id===l.id?' selected':'') + '" onclick="selLCLFn('+l.id+')">' +
-      '<div class="lcl-card-top"><span class="lcl-ing">'+l.ing+'</span><span class="lcl-id">ID '+l.id+'</span></div>' +
-      '<div class="lcl-desc">'+l.desc+'</div>' +
-      '<div class="lcl-obras">Obras: '+l.obras+'</div>' +
+  if (!filtered.length){el.innerHTML='<div class="empty">No se encontraron LCLs</div>';return;}
+  el.innerHTML = filtered.map(function(l){
+    return '<div class="lcl-card'+(selLCL&&selLCL.id===l.id?' selected':'')+'" onclick="selLCLFn('+l.id+')">'+
+      '<div class="lcl-top"><span class="lcl-ing">'+l.ing+'</span><span class="lcl-id">ID '+l.id+'</span></div>'+
+      '<div class="lcl-desc">'+l.desc+'</div>'+
+      '<div class="lcl-obras">Obras: '+l.obras+'</div>'+
     '</div>';
   }).join("");
 }
 
-function selLCLFn(id) {
-  selLCL = LCL_DATA.find(function(l){return l.id===id;});
+function selLCLFn(id){
+  selLCL=LCL_DATA.find(function(l){return l.id===id;});
   renderLCL(document.getElementById("searchLCL").value);
-  document.getElementById("btn1").disabled = false;
+  document.getElementById("btn2").disabled=false;
 }
 
-function setTab(mode) {
-  upMode = mode;
-  document.getElementById("tabFoto").className = "tab" + (mode==="foto"?" active":"");
-  document.getElementById("tabArch").className = "tab" + (mode==="archivo"?" active":"");
-  var fi = document.getElementById("fi");
-  if (mode==="foto") {
-    fi.accept="image/*"; fi.setAttribute("capture","environment");
-    document.getElementById("uzText").textContent="Toca para tomar o subir foto";
-    document.getElementById("uzSub").textContent="JPG, PNG, HEIC";
-  } else {
-    fi.accept="*/*"; fi.removeAttribute("capture");
-    document.getElementById("uzText").textContent="Toca para subir un archivo";
-    document.getElementById("uzSub").textContent="PDF, Word, Excel, imagenes...";
-  }
+function setTab(mode){
+  upMode=mode;
+  document.getElementById("tabFoto").className="tab"+(mode==="foto"?" active":"");
+  document.getElementById("tabArch").className="tab"+(mode==="archivo"?" active":"");
+  var fi=document.getElementById("fi");
+  if(mode==="foto"){fi.accept="image/*";fi.setAttribute("capture","environment");document.getElementById("uzText").textContent="Toca para tomar o subir foto";document.getElementById("uzSub").textContent="JPG, PNG, HEIC";}
+  else{fi.accept="*/*";fi.removeAttribute("capture");document.getElementById("uzText").textContent="Toca para subir un archivo";document.getElementById("uzSub").textContent="PDF, Word, Excel, imagenes...";}
 }
 
-function onFiles(input) {
-  selFiles = selFiles.concat(Array.from(input.files));
+function onFiles(input){
+  selFiles=selFiles.concat(Array.from(input.files));
   renderFiles();
-  document.getElementById("btn2").disabled = selFiles.length===0;
+  document.getElementById("btn3").disabled=selFiles.length===0;
   input.value="";
 }
 
-function renderFiles() {
-  document.getElementById("fileGrid").innerHTML = selFiles.map(function(f,i) {
-    var isImg = f.type.indexOf("image/")===0;
-    if (isImg) {
-      return '<div class="file-thumb"><img src="'+URL.createObjectURL(f)+'"><button onclick="rmFile('+i+')">x</button></div>';
-    }
-    return '<div class="file-thumb"><span class="icon">doc</span><span class="fname">'+f.name+'</span><button onclick="rmFile('+i+')">x</button></div>';
+function renderFiles(){
+  document.getElementById("fileGrid").innerHTML=selFiles.map(function(f,i){
+    var isImg=f.type.indexOf("image/")===0;
+    if(isImg) return '<div class="file-thumb"><img src="'+URL.createObjectURL(f)+'"><button class="rm" onclick="rmFile('+i+')">x</button></div>';
+    return '<div class="file-thumb"><span class="ficon">&#128196;</span><span class="fname">'+f.name+'</span><button class="rm" onclick="rmFile('+i+')">x</button></div>';
   }).join("");
 }
 
-function rmFile(i) {
-  selFiles.splice(i,1); renderFiles();
-  document.getElementById("btn2").disabled = selFiles.length===0;
+function rmFile(i){selFiles.splice(i,1);renderFiles();document.getElementById("btn3").disabled=selFiles.length===0;}
+
+function compressImage(file, maxW, quality) {
+  return new Promise(function(res){
+    if(file.type.indexOf("image/")<0){res(file);return;}
+    var img=new Image();
+    var url=URL.createObjectURL(file);
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      var c=document.createElement("canvas");c.width=w;c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      c.toBlob(function(blob){
+        URL.revokeObjectURL(url);
+        res(new File([blob],file.name,{type:"image/jpeg"}));
+      },"image/jpeg",quality);
+    };
+    img.src=url;
+  });
 }
 
-function goStep(n) {
-  if (n===2) {
-    document.getElementById("bannerIng").textContent = selLCL.ing;
-    document.getElementById("bannerDesc").textContent = selLCL.desc + " - Obras: " + selLCL.obras;
-  }
-  [0,1,2,3].forEach(function(i){ document.getElementById("s"+i).className="step"+(i===n?" active":""); });
-  var pcts=["25%","50%","75%","100%"];
-  document.getElementById("pbar").style.width=pcts[n];
-  window.scrollTo(0,0);
-}
-
-async function enviar() {
-  var btn = document.getElementById("btn2");
-  btn.disabled=true; btn.textContent="Enviando...";
-  var nota = document.getElementById("nota").value;
-  var now = new Date();
-  var fechaHora = now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate())+"_"+pad(now.getHours())+"-"+pad(now.getMinutes());
+async function enviar(){
+  var btn=document.getElementById("btn3");
+  btn.disabled=true;btn.textContent="Enviando...";
+  var nota=document.getElementById("nota").value;
+  var now=new Date();
+  var fechaHora=now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate())+"_"+pad(now.getHours())+"-"+pad(now.getMinutes());
   var ok=0;
-  for (var i=0;i<selFiles.length;i++) {
+  for(var i=0;i<selFiles.length;i++){
     var f=selFiles[i];
-    var ext=f.name.includes(".")?f.name.split(".").pop():"bin";
+    var compressed=await compressImage(f,1200,0.8);
+    var ext=f.name.includes(".")?f.name.split(".").pop():"jpg";
     var nombre=fechaHora+(selFiles.length>1?"_"+(i+1):"")+"."+ext;
-    try {
-      var b64=await toB64(f);
-      await fetch(PA_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id_origen:selLCL.id,lcl_ing:selLCL.ing,lcl_obras:selLCL.obras,descripcion:selLCL.desc,nombre_archivo:nombre,archivo_base64:b64,nota:nota,cargado_por:selPersona,area:""})});
+    try{
+      var b64=await toB64(compressed);
+      await fetch(PA_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id_origen:selLCL.id,lcl_ing:selLCL.ing,lcl_obras:selLCL.obras,descripcion:selLCL.desc,nombre_archivo:nombre,archivo_base64:b64,nota:nota,cargado_por:selNombre,area:selCarg})});
       ok++;
-    } catch(e){console.error(e);}
+    }catch(e){console.error(e);}
   }
-  if (ok>0) {
+  if(ok>0){
     document.getElementById("sucMsg").textContent=ok+" archivo"+(ok>1?"s":"")+" enviado"+(ok>1?"s":"")+" correctamente.";
-    document.getElementById("sucCard").innerHTML='<div class="success-row"><span>LCL</span><span>'+selLCL.ing+'</span></div><div class="success-row"><span>Jefe de cuadrilla</span><span>'+selPersona+'</span></div><div class="success-row"><span>Archivos</span><span>'+ok+'</span></div>';
-    goStep(3);
-  } else {
+    document.getElementById("sucCard").innerHTML=
+      '<div class="suc-row"><span>LCL</span><span>'+selLCL.ing+'</span></div>'+
+      '<div class="suc-row"><span>Cargo</span><span>'+selCarg+'</span></div>'+
+      '<div class="suc-row"><span>Nombre</span><span>'+selNombre+'</span></div>'+
+      '<div class="suc-row"><span>Archivos</span><span>'+ok+'</span></div>';
+    goStep(4);
+  }else{
     alert("Error al enviar. Revisa tu conexion.");
-    btn.disabled=false; btn.textContent="Enviar";
+    btn.disabled=false;btn.textContent="Enviar";
   }
 }
 
-function reset() {
-  selLCL=null; selFiles=[];
+function resetApp(){
+  selLCL=null;selFiles=[];
   document.getElementById("fileGrid").innerHTML="";
   document.getElementById("nota").value="";
   document.getElementById("searchLCL").value="";
-  document.getElementById("btn1").disabled=true;
   document.getElementById("btn2").disabled=true;
-  renderLCL(""); goStep(1);
+  document.getElementById("btn3").disabled=true;
+  renderLCL("");goStep(2);
+}
+
+function goStep(n){
+  if(n===1) populateNombres();
+  if(n===3){document.getElementById("bannerIng").textContent=selLCL.ing;document.getElementById("bannerDesc").textContent=selLCL.desc+" - Obras: "+selLCL.obras;}
+  [0,1,2,3,4].forEach(function(i){document.getElementById("s"+i).className="step"+(i===n?" active":"");});
+  var pcts=["20%","40%","60%","80%","100%"];
+  document.getElementById("pbar").style.width=pcts[n];
+  window.scrollTo(0,0);
 }
 
 function pad(n){return String(n).padStart(2,"0");}
