@@ -1,110 +1,184 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Carga de campo — Control LCL</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Carga de campo — PA Perú</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f4f2; min-height: 100vh; color: #1a1a1a; }
-.app-header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
-.app-header-title { font-size: 16px; font-weight: 600; }
-.app-header-sub { font-size: 12px; color: #666; }
-.steps-indicator { display: flex; align-items: center; gap: 6px; padding: 12px 16px 0; }
-.step-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; transition: all 0.2s; }
-.step-dot.active { background: #1a1a1a; width: 20px; border-radius: 3px; }
-.step { display: none; padding: 16px; }
-.step.active { display: block; }
-.step-label { font-size: 11px; font-weight: 600; color: #999; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; }
-.step-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-.step-desc { font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5; }
-.search-wrap { position: relative; margin-bottom: 12px; }
-.search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #999; pointer-events: none; }
-#searchInput { width: 100%; padding: 11px 11px 11px 34px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; background: #fff; color: #1a1a1a; outline: none; }
-#searchInput:focus { border-color: #0078d4; }
-.lcl-list { display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; }
-.lcl-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 13px 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.lcl-card.selected { border: 2px solid #0078d4; background: #f0f7ff; }
-.lcl-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.lcl-ing { font-size: 14px; font-weight: 600; color: #1a1a1a; }
-.lcl-id { font-size: 11px; font-weight: 600; color: #666; background: #f0f0f0; padding: 2px 8px; border-radius: 20px; }
-.lcl-desc { font-size: 12px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-.lcl-obras { font-size: 11px; color: #999; margin-top: 2px; }
-.btn-primary { width: 100%; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-secondary { width: 100%; padding: 13px; background: transparent; color: #1a1a1a; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
-.selected-banner { background: #f0f7ff; border: 1px solid #b3d4f5; border-radius: 12px; padding: 14px; margin-bottom: 20px; }
-.selected-banner-label { font-size: 11px; color: #0078d4; font-weight: 600; margin-bottom: 4px; }
-.selected-banner-ing { font-size: 15px; font-weight: 600; color: #1a1a1a; }
-.selected-banner-desc { font-size: 12px; color: #666; margin-top: 2px; }
-.upload-zone { border: 2px dashed #ccc; border-radius: 12px; padding: 28px 16px; text-align: center; cursor: pointer; background: #fff; margin-bottom: 12px; }
-.upload-zone svg { width: 36px; height: 36px; color: #ccc; display: block; margin: 0 auto 10px; }
-.upload-zone p { font-size: 14px; color: #666; font-weight: 500; }
-.upload-zone small { font-size: 12px; color: #999; }
-#fileInput { display: none; }
-.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-.photo-thumb { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; }
-.photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.photo-thumb-remove { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.nota-field { width: 100%; padding: 11px 13px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; background: #fff; color: #1a1a1a; resize: none; font-family: inherit; margin-bottom: 4px; line-height: 1.5; outline: none; }
-.success-icon { text-align: center; margin: 32px 0 16px; }
-.success-icon svg { width: 56px; height: 56px; color: #16a34a; }
-.success-title { font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 10px; }
-.success-detail { font-size: 14px; color: #666; text-align: center; line-height: 1.6; }
-.empty-state { text-align: center; padding: 32px 0; color: #999; font-size: 13px; }
+*{{box-sizing:border-box;margin:0;padding:0}}
+:root{{
+  --azul:#1B3A6B;
+  --azul-medio:#2D5A9E;
+  --azul-claro:#E8EFF9;
+  --rojo:#D0202A;
+  --gris:#F5F6F8;
+  --gris-borde:#DDE1E9;
+  --gris-texto:#6B7280;
+  --blanco:#FFFFFF;
+  --texto:#1A1F2E;
+}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--gris);min-height:100vh;color:var(--texto)}}
+.header{{background:var(--azul);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.2)}}
+.header img{{height:36px}}
+.header-right{{text-align:right}}
+.header-title{{font-size:13px;font-weight:600;color:var(--blanco);opacity:0.9}}
+.header-sub{{font-size:11px;color:rgba(255,255,255,0.6);margin-top:1px}}
+.progress-strip{{background:var(--azul-medio);height:3px}}
+.progress-fill{{height:100%;background:#fff;transition:width 0.3s ease}}
+.body{{padding:16px}}
+.step{{display:none}}.step.active{{display:block}}
+.step-badge{{display:inline-flex;align-items:center;gap:6px;background:var(--azul-claro);color:var(--azul-medio);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-bottom:10px;letter-spacing:0.03em}}
+.step-badge span{{background:var(--azul-medio);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:10px}}
+.step-title{{font-size:21px;font-weight:700;color:var(--azul);margin-bottom:4px}}
+.step-desc{{font-size:13px;color:var(--gris-texto);margin-bottom:18px;line-height:1.5}}
+.section-label{{font-size:11px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px}}
+.search-wrap{{position:relative;margin-bottom:10px}}
+.search-wrap svg{{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--gris-texto);pointer-events:none}}
+input[type=text],textarea{{width:100%;padding:11px 11px 11px 34px;border:1px solid var(--gris-borde);border-radius:10px;font-size:14px;background:#fff;color:var(--texto);outline:none;font-family:inherit}}
+input[type=text]:focus,textarea:focus{{border-color:var(--azul-medio);box-shadow:0 0 0 3px rgba(45,90,158,0.1)}}
+textarea{{padding:11px 13px;resize:none}}
+.lcl-list{{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow-y:auto;padding-right:2px}}
+.lcl-card{{background:#fff;border:1.5px solid var(--gris-borde);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent}}
+.lcl-card:active{{background:var(--azul-claro)}}
+.lcl-card.selected{{border-color:var(--azul-medio);background:var(--azul-claro);box-shadow:0 0 0 3px rgba(45,90,158,0.1)}}
+.lcl-top{{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}}
+.lcl-ing{{font-size:13px;font-weight:700;color:var(--azul)}}
+.lcl-badge{{font-size:10px;font-weight:600;color:var(--gris-texto);background:var(--gris);padding:2px 8px;border-radius:20px;border:1px solid var(--gris-borde)}}
+.lcl-desc{{font-size:12px;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.lcl-obras{{font-size:11px;color:var(--gris-texto);margin-top:2px}}
+.area-group-label{{font-size:10px;font-weight:700;color:var(--azul-medio);text-transform:uppercase;letter-spacing:0.06em;padding:10px 4px 4px;}}
+.person-list{{display:flex;flex-direction:column;gap:7px;max-height:320px;overflow-y:auto}}
+.person-card{{background:#fff;border:1.5px solid var(--gris-borde);border-radius:10px;padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;-webkit-tap-highlight-color:transparent}}
+.person-card:active{{background:var(--azul-claro)}}
+.person-card.selected{{border-color:var(--azul-medio);background:var(--azul-claro)}}
+.person-avatar{{width:34px;height:34px;border-radius:50%;background:var(--azul);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}}
+.person-name{{font-size:13px;font-weight:600;color:var(--texto)}}
+.person-area{{font-size:11px;color:var(--gris-texto);margin-top:1px}}
+.selected-banner{{background:var(--azul-claro);border:1.5px solid var(--azul-medio);border-radius:12px;padding:13px 14px;margin-bottom:16px}}
+.banner-label{{font-size:10px;font-weight:700;color:var(--azul-medio);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}}
+.banner-main{{font-size:14px;font-weight:700;color:var(--azul)}}
+.banner-sub{{font-size:12px;color:var(--gris-texto);margin-top:2px}}
+.upload-tabs{{display:flex;gap:8px;margin-bottom:12px}}
+.upload-tab{{flex:1;padding:10px;border:1.5px solid var(--gris-borde);border-radius:10px;background:#fff;font-size:13px;font-weight:600;color:var(--gris-texto);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}}
+.upload-tab.active{{border-color:var(--azul-medio);background:var(--azul-claro);color:var(--azul-medio)}}
+.upload-zone{{border:2px dashed var(--gris-borde);border-radius:12px;padding:26px 16px;text-align:center;cursor:pointer;background:#fff;margin-bottom:12px;-webkit-tap-highlight-color:transparent}}
+.upload-zone:active{{background:var(--gris)}}
+.upload-zone svg{{width:32px;height:32px;color:var(--azul-medio);display:block;margin:0 auto 10px}}
+.upload-zone p{{font-size:14px;color:var(--texto);font-weight:600}}
+.upload-zone small{{font-size:12px;color:var(--gris-texto)}}
+#fileInput{{display:none}}
+.file-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}}
+.file-thumb{{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--gris);border:1px solid var(--gris-borde);display:flex;align-items:center;justify-content:center}}
+.file-thumb img{{width:100%;height:100%;object-fit:cover;display:block}}
+.file-thumb-icon{{font-size:28px;color:var(--azul-medio)}}
+.file-thumb-name{{font-size:9px;color:var(--gris-texto);text-align:center;padding:0 4px;position:absolute;bottom:4px;left:0;right:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.file-remove{{position:absolute;top:3px;right:3px;background:rgba(27,58,107,0.75);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}}
+.btn-primary{{width:100%;padding:14px;background:var(--azul);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.01em;box-shadow:0 2px 8px rgba(27,58,107,0.25)}}
+.btn-primary:disabled{{opacity:0.35;cursor:not-allowed;box-shadow:none}}
+.btn-secondary{{width:100%;padding:12px;background:transparent;color:var(--azul);border:1.5px solid var(--azul-medio);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}}
+.success-wrap{{text-align:center;padding:20px 0}}
+.success-circle{{width:72px;height:72px;border-radius:50%;background:var(--azul-claro);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}}
+.success-circle svg{{width:36px;height:36px;color:var(--azul-medio)}}
+.success-title{{font-size:22px;font-weight:700;color:var(--azul);margin-bottom:8px}}
+.success-detail{{font-size:14px;color:var(--gris-texto);line-height:1.6}}
+.success-card{{background:var(--azul-claro);border:1.5px solid var(--azul-medio);border-radius:12px;padding:14px;margin:16px 0;text-align:left}}
+.success-card-row{{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}}
+.success-card-row span:first-child{{color:var(--gris-texto);font-weight:500}}
+.success-card-row span:last-child{{color:var(--azul);font-weight:700}}
+.empty-state{{text-align:center;padding:28px 0;color:var(--gris-texto);font-size:13px}}
+.divider{{height:1px;background:var(--gris-borde);margin:14px 0}}
 </style>
 </head>
 <body>
-<div class="app-header">
-  <div>
-    <div class="app-header-title">Carga de campo</div>
-    <div class="app-header-sub">Control de liquidaciones</div>
+<div class="header">
+  <img src="data:image/png;base64,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" alt="PA Perú"/>
+  <div class="header-right">
+    <div class="header-title">Carga de campo</div>
+    <div class="header-sub">Control de liquidaciones</div>
   </div>
 </div>
-<div class="steps-indicator">
-  <div class="step-dot active" id="dot0"></div>
-  <div class="step-dot" id="dot1"></div>
-  <div class="step-dot" id="dot2"></div>
-</div>
+<div class="progress-strip"><div class="progress-fill" id="progressStrip" style="width:25%"></div></div>
+
+<div class="body">
+
+<!-- PASO 1: QUIÉN ERES -->
 <div class="step active" id="step0">
-  <div class="step-label">Paso 1 de 3</div>
+  <div class="step-badge"><span>1</span>PASO 1 DE 4</div>
+  <div class="step-title">¿Quién eres?</div>
+  <div class="step-desc">Selecciona tu nombre de la lista.</div>
+  <div class="section-label">Jefe de cuadrilla</div>
+  <div class="person-list" id="personList"></div>
+  <button class="btn-primary" id="btnStep0" disabled>Continuar</button>
+</div>
+
+<!-- PASO 2: SELECCIONAR LCL -->
+<div class="step" id="step1">
+  <div class="step-badge"><span>2</span>PASO 2 DE 4</div>
   <div class="step-title">Selecciona tu LCL</div>
   <div class="step-desc">Busca por código, descripción o número de obra.</div>
   <div class="search-wrap">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" id="searchInput" placeholder="Buscar LCL..." autocomplete="off" />
+    <input type="text" id="searchInput" placeholder="Buscar LCL..." autocomplete="off"/>
   </div>
   <div class="lcl-list" id="lclList"></div>
   <button class="btn-primary" id="btnStep1" disabled>Continuar</button>
+  <button class="btn-secondary" id="btnBack0">Volver</button>
 </div>
-<div class="step" id="step1">
-  <div class="step-label">Paso 2 de 3</div>
-  <div class="step-title">Sube las fotos</div>
-  <div class="step-desc">Puedes subir varias fotos a la vez desde tu galería o cámara.</div>
+
+<!-- PASO 3: SUBIR ARCHIVOS -->
+<div class="step" id="step2">
+  <div class="step-badge"><span>3</span>PASO 3 DE 4</div>
+  <div class="step-title">Sube los archivos</div>
+  <div class="step-desc">Fotos o documentos del trabajo realizado.</div>
+
   <div class="selected-banner">
-    <div class="selected-banner-label">LCL seleccionado</div>
-    <div class="selected-banner-ing" id="bannerIng">—</div>
-    <div class="selected-banner-desc" id="bannerDesc">—</div>
+    <div class="banner-label">LCL seleccionado</div>
+    <div class="banner-main" id="bannerIng">—</div>
+    <div class="banner-sub" id="bannerDesc">—</div>
   </div>
+
+  <div class="upload-tabs">
+    <button class="upload-tab active" id="tabFoto" onclick="setTab('foto')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Foto
+    </button>
+    <button class="upload-tab" id="tabArchivo" onclick="setTab('archivo')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Archivo
+    </button>
+  </div>
+
   <div class="upload-zone" id="uploadZone">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    <p>Toca para subir fotos</p>
-    <small>Galería o cámara directa</small>
+    <p id="uploadZoneText">Toca para tomar o subir foto</p>
+    <small id="uploadZoneSub">JPG, PNG, HEIC</small>
   </div>
-  <input type="file" id="fileInput" accept="image/*" multiple />
-  <div class="photo-grid" id="photoGrid"></div>
-  <textarea class="nota-field" id="notaField" rows="3" placeholder="Nota opcional..."></textarea>
-  <button class="btn-primary" id="btnStep2" disabled>Enviar fotos</button>
-  <button class="btn-secondary" id="btnBack">Cambiar LCL</button>
+  <input type="file" id="fileInput" accept="image/*" multiple capture="environment"/>
+
+  <div class="file-grid" id="fileGrid"></div>
+
+  <div class="section-label">Nota (opcional)</div>
+  <textarea id="notaField" rows="3" placeholder="Observación o descripción del trabajo..."></textarea>
+
+  <button class="btn-primary" id="btnStep2" disabled>Enviar</button>
+  <button class="btn-secondary" id="btnBack1">Cambiar LCL</button>
 </div>
-<div class="step" id="step2">
-  <div class="success-icon">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+
+<!-- PASO 4: ÉXITO -->
+<div class="step" id="step3">
+  <div class="success-wrap">
+    <div class="success-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="success-title">¡Enviado!</div>
+    <div class="success-detail" id="successDetail">Los archivos fueron cargados correctamente.</div>
+    <div class="success-card" id="successCard"></div>
+    <button class="btn-primary" id="btnNuevo" style="margin-top:8px">Cargar otro LCL</button>
   </div>
-  <div class="success-title">¡Fotos enviadas!</div>
-  <div class="success-detail" id="successDetail">Las fotos fueron cargadas correctamente.</div>
-  <button class="btn-primary" id="btnNuevo" style="margin-top:28px;">Cargar otro LCL</button>
 </div>
+
+</div>
+
 <script>
 const POWER_AUTOMATE_URL = "https://default24c2e1716e8e4193b3b6fc1b6bb306.bb.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/028be164232349ec967efb505d19707d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-ZoH5WozFVq6whadr9yz2GnijKhhkX29YfzmpnhWoLI";
 const LCL_DATA = [
@@ -390,21 +464,72 @@ const LCL_DATA = [
   { id: 227, ing: "LCL-6300885338", obras: "6300896955", desc: "DC002_Normalización redes de MT/BT por calidad de producto_06615C_-" },
   { id: 250, ing: "LCL-6300898445", obras: "6300927654", desc: "QSC08_Complemento de reforma SED 00033S -8SP" }
 ];
+const PERSONAL_DATA = [
+  { area: "OBRAS CLIEN. (ELECT)", nombre: "ENRIQUE COCHACHIN SAUL" },
+  { area: "OBRAS CLIEN. (ELECT)", nombre: "HUACO HUAMAN MARTIN SANTIAGO" },
+  { area: "OBRAS CLIEN. (ELECT)", nombre: "IZAGUIRRE MUÑOZ FLORENCIO JAVIER" },
+  { area: "OBRAS CLIEN. (ELECT)", nombre: "CHARA ANTEZANA YONNY" },
+  { area: "OBRAS CLIEN. (ELECT)", nombre: "CALERO GOMEZ ELVIS AUGUSTO" },
+  { area: "OBRAS CLIEN. (ELECT)", nombre: "VILNER MAZA JOSE LUIS" },
+  { area: "OBRAS CLIEN. (ELECT)", nombre: "SANTILLAN MEZA ABIMAEL" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "GUTIERREZ BUITRON WILLE MISAEL" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "NAJARRO QUISPE VICTOR" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "SANDOVAL SOLANO JHONATAN NILTON" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "SIESQUEN SANTAMARIA FLORENTINO" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "SAAVEDRA VARGAS RUBEN ALEX" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "AYAC GARCIA NICOLAS" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "PISCOYA PISCOYA JOSE ADOLFO" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "RODRIGUEZ AQUINO GILTON JULIO" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "LLAURE ALAYO ZORIANO" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "ECHACCAYA SUAREZ JOEL TEODOLFO" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "RAMOS HERRERA ALEX RICARDO" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "ZAMBRANO JULIAN LUIS HECTOR" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "PINTADO MORALES JUAN MANUEL" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "SANCHEZ CHAVEZ FRANCISCO LUCIO" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "SIPAN CONDOR JUAN MANUEL" },
+  { area: "OBRAS DE INVERSIÓN", nombre: "AGUILAR AVENDAÑO JESUS CLAUDIO" }
+];
 
+let selectedPerson = null;
 let selectedLCL = null;
 let selectedFiles = [];
+let uploadMode = "foto";
 
+// ---- PERSONAL ----
+function renderPersonal() {
+  const areas = [...new Set(PERSONAL_DATA.map(p => p.area))];
+  let html = "";
+  areas.forEach(area => {
+    html += `<div class="area-group-label">${area}</div>`;
+    PERSONAL_DATA.filter(p => p.area === area).forEach(p => {
+      const initials = p.nombre.trim().split(" ").slice(0,2).map(w=>w[0]).join("");
+      html += `<div class="person-card ${selectedPerson && selectedPerson.nombre===p.nombre?'selected':''}" onclick="selectPerson('${p.nombre.replace(/'/,"\'")}','${p.area}')">
+        <div class="person-avatar">${initials}</div>
+        <div><div class="person-name">${p.nombre}</div><div class="person-area">${p.area}</div></div>
+      </div>`;
+    });
+  });
+  document.getElementById("personList").innerHTML = html;
+}
+
+function selectPerson(nombre, area) {
+  selectedPerson = {nombre, area};
+  renderPersonal();
+  document.getElementById("btnStep0").disabled = false;
+}
+
+// ---- LCL ----
 function renderList(filter) {
   const list = document.getElementById("lclList");
-  const q = (filter || "").toLowerCase();
+  const q = (filter||"").toLowerCase();
   const filtered = LCL_DATA.filter(l =>
     !q || l.ing.toLowerCase().includes(q) || l.obras.includes(q) ||
     l.desc.toLowerCase().includes(q) || String(l.id).includes(q)
   );
   if (!filtered.length) { list.innerHTML = '<div class="empty-state">No se encontraron LCLs</div>'; return; }
   list.innerHTML = filtered.map(l => `
-    <div class="lcl-card ${selectedLCL && selectedLCL.id === l.id ? 'selected' : ''}" onclick="selectLCL(${l.id})">
-      <div class="lcl-card-top"><span class="lcl-ing">${l.ing}</span><span class="lcl-id">ID ${l.id}</span></div>
+    <div class="lcl-card ${selectedLCL && selectedLCL.id===l.id?'selected':''}" onclick="selectLCL(${l.id})">
+      <div class="lcl-top"><span class="lcl-ing">${l.ing}</span><span class="lcl-badge">ID ${l.id}</span></div>
       <div class="lcl-desc">${l.desc}</div>
       <div class="lcl-obras">Obras: ${l.obras}</div>
     </div>`).join("");
@@ -416,75 +541,136 @@ function selectLCL(id) {
   document.getElementById("btnStep1").disabled = false;
 }
 
-document.getElementById("searchInput").addEventListener("input", e => renderList(e.target.value));
-document.getElementById("btnStep1").addEventListener("click", () => {
-  if (!selectedLCL) return;
-  document.getElementById("bannerIng").textContent = selectedLCL.ing;
-  document.getElementById("bannerDesc").textContent = selectedLCL.desc + " · Obras: " + selectedLCL.obras;
-  goStep(1);
-});
-document.getElementById("btnBack").addEventListener("click", () => goStep(0));
+// ---- UPLOAD MODE ----
+function setTab(mode) {
+  uploadMode = mode;
+  document.getElementById("tabFoto").classList.toggle("active", mode==="foto");
+  document.getElementById("tabArchivo").classList.toggle("active", mode==="archivo");
+  const fi = document.getElementById("fileInput");
+  if (mode === "foto") {
+    fi.accept = "image/*";
+    fi.setAttribute("capture","environment");
+    document.getElementById("uploadZoneText").textContent = "Toca para tomar o subir foto";
+    document.getElementById("uploadZoneSub").textContent = "JPG, PNG, HEIC";
+  } else {
+    fi.accept = "*/*";
+    fi.removeAttribute("capture");
+    document.getElementById("uploadZoneText").textContent = "Toca para subir un archivo";
+    document.getElementById("uploadZoneSub").textContent = "PDF, Word, Excel, imágenes...";
+  }
+}
+
+// ---- FILES ----
 document.getElementById("uploadZone").addEventListener("click", () => document.getElementById("fileInput").click());
 document.getElementById("fileInput").addEventListener("change", e => {
   selectedFiles = [...selectedFiles, ...Array.from(e.target.files)];
-  renderThumbs();
+  renderFiles();
   document.getElementById("btnStep2").disabled = selectedFiles.length === 0;
   e.target.value = "";
 });
 
-function renderThumbs() {
-  document.getElementById("photoGrid").innerHTML = selectedFiles.map((f, i) =>
-    `<div class="photo-thumb"><img src="${URL.createObjectURL(f)}" /><button class="photo-thumb-remove" onclick="removePhoto(${i})">×</button></div>`
-  ).join("");
+function renderFiles() {
+  const isImg = f => f.type.startsWith("image/");
+  document.getElementById("fileGrid").innerHTML = selectedFiles.map((f,i) => {
+    if (isImg(f)) {
+      return `<div class="file-thumb"><img src="${URL.createObjectURL(f)}"/><button class="file-remove" onclick="removeFile(${i})">×</button></div>`;
+    } else {
+      return `<div class="file-thumb"><span class="file-thumb-icon">📄</span><span class="file-thumb-name">${f.name}</span><button class="file-remove" onclick="removeFile(${i})">×</button></div>`;
+    }
+  }).join("");
 }
 
-function removePhoto(i) {
-  selectedFiles.splice(i, 1);
-  renderThumbs();
+function removeFile(i) {
+  selectedFiles.splice(i,1);
+  renderFiles();
   document.getElementById("btnStep2").disabled = selectedFiles.length === 0;
 }
 
+// ---- NAV ----
+document.getElementById("btnStep0").addEventListener("click", () => {
+  goStep(1); renderList("");
+});
+document.getElementById("btnStep1").addEventListener("click", () => {
+  document.getElementById("bannerIng").textContent = selectedLCL.ing;
+  document.getElementById("bannerDesc").textContent = selectedLCL.desc + " · Obras: " + selectedLCL.obras;
+  goStep(2);
+});
+document.getElementById("btnBack0").addEventListener("click", () => goStep(0));
+document.getElementById("btnBack1").addEventListener("click", () => goStep(1));
+document.getElementById("searchInput").addEventListener("input", e => renderList(e.target.value));
+
+// ---- ENVIAR ----
 document.getElementById("btnStep2").addEventListener("click", async () => {
   const btn = document.getElementById("btnStep2");
   btn.disabled = true;
   btn.textContent = "Enviando...";
   const nota = document.getElementById("notaField").value;
+  const now = new Date();
+  const fechaStr = now.getFullYear() + "-" +
+    String(now.getMonth()+1).padStart(2,"0") + "-" +
+    String(now.getDate()).padStart(2,"0");
+  const fechaHoraStr = fechaStr + "_" +
+    String(now.getHours()).padStart(2,"0") + "-" +
+    String(now.getMinutes()).padStart(2,"0");
+
   let ok = 0;
   for (let i = 0; i < selectedFiles.length; i++) {
     const file = selectedFiles[i];
+    const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
+    const nombreArchivo = fechaHoraStr + (selectedFiles.length > 1 ? "_" + (i+1) : "") + "." + ext;
     try {
       const base64 = await toBase64(file);
       await fetch(POWER_AUTOMATE_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_origen: selectedLCL.id, lcl_ing: selectedLCL.ing, lcl_obras: selectedLCL.obras, descripcion: selectedLCL.desc, nombre_archivo: file.name, archivo_base64: base64, nota: nota })
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          id_origen: selectedLCL.id,
+          lcl_ing: selectedLCL.ing,
+          lcl_obras: selectedLCL.obras,
+          descripcion: selectedLCL.desc,
+          nombre_archivo: nombreArchivo,
+          archivo_base64: base64,
+          nota: nota,
+          cargado_por: selectedPerson.nombre,
+          area: selectedPerson.area
+        })
       });
       ok++;
     } catch(e) { console.error(e); }
   }
+
   if (ok > 0) {
-    document.getElementById("successDetail").textContent = ok + " foto" + (ok>1?"s":"") + " enviada" + (ok>1?"s":"") + " para " + selectedLCL.ing + " (ID " + selectedLCL.id + ").";
-    goStep(2);
+    document.getElementById("successDetail").textContent =
+      ok + " archivo" + (ok>1?"s":"") + " enviado" + (ok>1?"s":"") + " correctamente.";
+    document.getElementById("successCard").innerHTML = `
+      <div class="success-card-row"><span>LCL</span><span>${selectedLCL.ing}</span></div>
+      <div class="success-card-row"><span>Jefe de cuadrilla</span><span>${selectedPerson.nombre}</span></div>
+      <div class="success-card-row"><span>Archivos</span><span>${ok}</span></div>
+      <div class="success-card-row"><span>Fecha</span><span>${fechaStr}</span></div>
+    `;
+    goStep(3);
   } else {
     alert("Error al enviar. Revisa tu conexión.");
     btn.disabled = false;
-    btn.textContent = "Enviar fotos";
+    btn.textContent = "Enviar";
   }
 });
 
 document.getElementById("btnNuevo").addEventListener("click", () => {
   selectedLCL = null; selectedFiles = [];
-  document.getElementById("photoGrid").innerHTML = "";
+  document.getElementById("fileGrid").innerHTML = "";
   document.getElementById("notaField").value = "";
   document.getElementById("searchInput").value = "";
   document.getElementById("btnStep1").disabled = true;
   document.getElementById("btnStep2").disabled = true;
-  renderList(""); goStep(0);
+  renderList(""); goStep(1);
 });
 
 function goStep(n) {
   document.querySelectorAll(".step").forEach((s,i) => s.classList.toggle("active", i===n));
-  [0,1,2].forEach(i => document.getElementById("dot"+i).classList.toggle("active", i===n));
+  const pcts = ["25%","50%","75%","100%"];
+  document.getElementById("progressStrip").style.width = pcts[n];
+  window.scrollTo(0,0);
 }
 
 function toBase64(file) {
@@ -496,7 +682,7 @@ function toBase64(file) {
   });
 }
 
-renderList("");
+renderPersonal();
 </script>
 </body>
 </html>
