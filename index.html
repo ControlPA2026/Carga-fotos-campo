@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carga de campo — PA Peru</title>
+<title>Carga de campo - PA Peru</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:#F0F4FA;color:#1a1a2e;min-height:100vh}
@@ -44,6 +44,10 @@ select:focus,input:focus,textarea:focus{border-color:#2D5A9E;box-shadow:0 0 0 3p
 .banner-label{font-size:10px;font-weight:700;color:#2D5A9E;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
 .banner-main{font-size:14px;font-weight:700;color:#1B3A6B}
 .banner-sub{font-size:12px;color:#6B7280;margin-top:1px}
+.gps-bar{background:#fff;border:1px solid #DDE1E9;border-radius:9px;padding:9px 12px;display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;font-size:12px;color:#6B7280}
+.gps-bar svg{width:14px;height:14px;color:#2D5A9E;flex-shrink:0;margin-top:1px}
+.gps-bar .gps-info{flex:1;line-height:1.5}
+.gps-bar .gps-ok{color:#2D5A9E;font-weight:600}
 .upload-tabs{display:flex;gap:8px;margin-bottom:12px}
 .tab{flex:1;padding:9px;border:1.5px solid #DDE1E9;border-radius:9px;background:#fff;font-size:13px;font-weight:600;color:#6B7280;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
 .tab.active{border-color:#2D5A9E;background:#E8EFF9;color:#2D5A9E}
@@ -58,10 +62,6 @@ input[type=file]{display:none}
 .file-thumb .ficon{font-size:24px}
 .file-thumb .fname{font-size:9px;color:#6B7280;text-align:center;padding:0 4px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px}
 .file-thumb .rm{position:absolute;top:3px;right:3px;background:rgba(27,58,107,.75);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
-.gps-bar{background:#fff;border:1px solid #DDE1E9;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12px;color:#6B7280}
-.gps-bar svg{width:14px;height:14px;color:#2D5A9E;flex-shrink:0}
-.gps-bar span{flex:1}
-.gps-bar .gps-status{font-weight:600;color:#2D5A9E}
 .btn{width:100%;padding:14px;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent}
 .btn-p{background:#1B3A6B;color:#fff;box-shadow:0 2px 8px rgba(27,58,107,.2)}
 .btn-p:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
@@ -70,9 +70,9 @@ input[type=file]{display:none}
 .suc-circle{width:68px;height:68px;border-radius:50%;background:#E8EFF9;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
 .suc-circle svg{width:34px;height:34px;color:#2D5A9E}
 .suc-card{background:#E8EFF9;border:1.5px solid #2D5A9E;border-radius:10px;padding:13px 14px;text-align:left;margin:14px 0}
-.suc-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}
-.suc-row span:first-child{color:#6B7280}
-.suc-row span:last-child{color:#1B3A6B;font-weight:700;max-width:60%;text-align:right}
+.suc-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;gap:8px}
+.suc-row span:first-child{color:#6B7280;flex-shrink:0}
+.suc-row span:last-child{color:#1B3A6B;font-weight:700;text-align:right}
 .empty{text-align:center;padding:24px;color:#6B7280;font-size:13px}
 textarea{resize:none}
 canvas{display:none}
@@ -147,8 +147,7 @@ canvas{display:none}
   </div>
   <div class="gps-bar">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 1 8 8c0 5.25-8 13-8 13S4 15.25 4 10a8 8 0 0 1 8-8z"/></svg>
-    <span id="gpsText">Obteniendo ubicacion...</span>
-    <span class="gps-status" id="gpsStatus"></span>
+    <div class="gps-info" id="gpsInfo">Obteniendo ubicacion...</div>
   </div>
   <div class="upload-tabs">
     <div class="tab active" id="tabFoto" onclick="setTab('foto')">Foto</div>
@@ -474,25 +473,44 @@ var PERSONAL={
   "Liquidador":["flor.acedo","onorio.junes","maylli.rosales","dante.garcia","brenda.paiva","romina.marrufo","oscar.japay"]
 };
 var selCarg=null,selNombre=null,selLCL=null,selFiles=[],upMode="foto";
-var gpsCoords=null,gpsStr="Sin ubicacion";
+var gpsLat=null,gpsLng=null,gpsDir="Sin ubicacion",gpsReady=false;
 
-// GPS
 function initGPS(){
-  if(!navigator.geolocation){document.getElementById("gpsText").textContent="GPS no disponible";return;}
+  gpsReady=false;gpsLat=null;gpsLng=null;gpsDir="Sin ubicacion";
+  document.getElementById("gpsInfo").innerHTML="Obteniendo ubicacion...";
+  if(!navigator.geolocation){
+    document.getElementById("gpsInfo").innerHTML="GPS no disponible en este dispositivo";
+    return;
+  }
   navigator.geolocation.getCurrentPosition(function(pos){
-    var lat=pos.coords.latitude.toFixed(5);
-    var lng=pos.coords.longitude.toFixed(5);
-    gpsCoords={lat:lat,lng:lng};
-    gpsStr=lat+", "+lng;
-    document.getElementById("gpsText").textContent=lat+", "+lng;
-    document.getElementById("gpsStatus").textContent="Listo";
-  },function(){
-    document.getElementById("gpsText").textContent="No se pudo obtener ubicacion";
-    document.getElementById("gpsStatus").textContent="";
-  },{enableHighAccuracy:true,timeout:10000});
+    gpsLat=pos.coords.latitude;
+    gpsLng=pos.coords.longitude;
+    document.getElementById("gpsInfo").innerHTML="Obteniendo direccion...";
+    fetch("https://nominatim.openstreetmap.org/reverse?lat="+gpsLat+"&lon="+gpsLng+"&format=json&accept-language=es")
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var addr=data.address||{};
+        var parts=[];
+        if(addr.road) parts.push(addr.road);
+        if(addr.house_number) parts[0]=(parts[0]||"")+(" "+addr.house_number).trim();
+        if(addr.suburb||addr.neighbourhood) parts.push(addr.suburb||addr.neighbourhood);
+        if(addr.city||addr.town||addr.village) parts.push(addr.city||addr.town||addr.village);
+        gpsDir=parts.length>0?parts.join(", "):"Lat:"+gpsLat.toFixed(4)+" Lng:"+gpsLng.toFixed(4);
+        gpsReady=true;
+        document.getElementById("gpsInfo").innerHTML='<span class="gps-ok">'+gpsDir+'</span>';
+      })
+      .catch(function(){
+        gpsDir="Lat:"+gpsLat.toFixed(5)+" Lng:"+gpsLng.toFixed(5);
+        gpsReady=true;
+        document.getElementById("gpsInfo").innerHTML='<span class="gps-ok">'+gpsDir+'</span>';
+      });
+  },function(err){
+    var msg="No se pudo obtener ubicacion";
+    if(err.code===1) msg="Permiso de ubicacion denegado. Activalo en ajustes del navegador.";
+    document.getElementById("gpsInfo").innerHTML=msg;
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 }
 
-// CARGO
 function selCargo(cargo,idx){
   selCarg=cargo;
   [0,1,2].forEach(function(i){document.getElementById("c"+i).className="cargo-card"+(i===idx?" selected":"");});
@@ -514,7 +532,6 @@ function onNombreChange(){
   document.getElementById("btn1").disabled=!selNombre;
 }
 
-// LCL
 function renderLCL(q){
   q=(q||"").toLowerCase();
   var filtered=LCL_DATA.filter(function(l){return !q||l.ing.toLowerCase().indexOf(q)>=0||l.obras.indexOf(q)>=0||l.desc.toLowerCase().indexOf(q)>=0||String(l.id).indexOf(q)>=0;});
@@ -533,7 +550,6 @@ function selLCLFn(id){
   document.getElementById("btn2").disabled=false;
 }
 
-// TAB
 function setTab(mode){
   upMode=mode;
   document.getElementById("tabFoto").className="tab"+(mode==="foto"?" active":"");
@@ -543,7 +559,6 @@ function setTab(mode){
   else{fi.accept="*/*";fi.removeAttribute("capture");document.getElementById("uzText").textContent="Toca para subir un archivo";document.getElementById("uzSub").textContent="PDF, Word, Excel, imagenes...";}
 }
 
-// FILES
 function onFiles(input){
   selFiles=selFiles.concat(Array.from(input.files));
   renderFiles();document.getElementById("btn3").disabled=selFiles.length===0;input.value="";
@@ -552,61 +567,46 @@ function onFiles(input){
 function renderFiles(){
   document.getElementById("fileGrid").innerHTML=selFiles.map(function(f,i){
     var isImg=f.type.indexOf("image/")===0;
-    if(isImg)return '<div class="file-thumb"><img src="'+URL.createObjectURL(f)+'"><button class="rm" onclick="rmFile('+i+')">x</button></div>';
+    if(isImg) return '<div class="file-thumb"><img src="'+URL.createObjectURL(f)+'"><button class="rm" onclick="rmFile('+i+')">x</button></div>';
     return '<div class="file-thumb"><span class="ficon">&#128196;</span><span class="fname">'+f.name+'</span><button class="rm" onclick="rmFile('+i+')">x</button></div>';
   }).join("");
 }
 
 function rmFile(i){selFiles.splice(i,1);renderFiles();document.getElementById("btn3").disabled=selFiles.length===0;}
 
-// WATERMARK
-function addWatermark(file, dateStr, gpsStr){
+function addWatermark(file,dateStr,dirStr){
   return new Promise(function(res){
     if(file.type.indexOf("image/")<0){res(file);return;}
     var img=new Image();
     var url=URL.createObjectURL(file);
     img.onload=function(){
-      var maxW=1200;
-      var w=img.width,h=img.height;
+      var maxW=1200,w=img.width,h=img.height;
       if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
       var cvs=document.getElementById("cvs");
       cvs.width=w;cvs.height=h;
       var ctx=cvs.getContext("2d");
       ctx.drawImage(img,0,0,w,h);
-
-      // Watermark background
-      var lines=["Fecha: "+dateStr,"GPS: "+gpsStr];
-      var fSize=Math.max(12,Math.round(w/50));
+      var fSize=Math.max(13,Math.round(w/45));
+      var lines=["Fecha: "+dateStr,"Lugar: "+dirStr];
       ctx.font="bold "+fSize+"px Arial";
       var maxTw=0;
       lines.forEach(function(l){var tw=ctx.measureText(l).width;if(tw>maxTw)maxTw=tw;});
-      var pad=fSize*0.6;
-      var bh=(fSize+pad)*lines.length+pad;
-      var bw=maxTw+pad*2;
-      var bx=w-bw-10;
-      var by=h-bh-10;
-
-      ctx.fillStyle="rgba(0,0,0,0.55)";
+      var pad=fSize*0.7,bh=(fSize+pad)*lines.length+pad,bw=maxTw+pad*2;
+      var bx=10,by=h-bh-10;
+      ctx.fillStyle="rgba(0,0,0,0.6)";
       ctx.beginPath();
-      ctx.roundRect(bx,by,bw,bh,6);
+      if(ctx.roundRect) ctx.roundRect(bx,by,bw,bh,6);
+      else ctx.rect(bx,by,bw,bh);
       ctx.fill();
-
       ctx.fillStyle="#fff";
-      ctx.font="bold "+fSize+"px Arial";
-      lines.forEach(function(l,i){
-        ctx.fillText(l,bx+pad,by+pad+fSize+(fSize+pad)*i);
-      });
-
+      lines.forEach(function(l,i){ctx.fillText(l,bx+pad,by+pad+fSize+(fSize+pad)*i);});
       URL.revokeObjectURL(url);
-      cvs.toBlob(function(blob){
-        res(new File([blob],file.name,{type:"image/jpeg"}));
-      },"image/jpeg",0.85);
+      cvs.toBlob(function(blob){res(new File([blob],file.name,{type:"image/jpeg"}));}, "image/jpeg",0.85);
     };
     img.src=url;
   });
 }
 
-// SEND
 async function enviar(){
   var btn=document.getElementById("btn3");
   btn.disabled=true;btn.textContent="Procesando...";
@@ -617,12 +617,12 @@ async function enviar(){
   var ok=0;
   for(var i=0;i<selFiles.length;i++){
     var f=selFiles[i];
-    var processed=await addWatermark(f,dateStr,gpsStr);
+    var processed=await addWatermark(f,dateStr,gpsDir);
     var ext=f.name.includes(".")?f.name.split(".").pop():"jpg";
     var nombre=fechaHora+(selFiles.length>1?"_"+(i+1):"")+"."+ext;
     try{
       var b64=await toB64(processed);
-      await fetch(PA_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id_origen:selLCL.id,lcl_ing:selLCL.ing,lcl_obras:selLCL.obras,descripcion:selLCL.desc,nombre_archivo:nombre,archivo_base64:b64,nota:nota,cargado_por:selNombre,area:selCarg,gps:gpsStr})});
+      await fetch(PA_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id_origen:selLCL.id,lcl_ing:selLCL.ing,lcl_obras:selLCL.obras,descripcion:selLCL.desc,nombre_archivo:nombre,archivo_base64:b64,nota:nota,cargado_por:selNombre,area:selCarg,gps:gpsDir})});
       ok++;
     }catch(e){console.error(e);}
   }
@@ -633,7 +633,7 @@ async function enviar(){
       '<div class="suc-row"><span>Cargo</span><span>'+selCarg+'</span></div>'+
       '<div class="suc-row"><span>Nombre</span><span>'+selNombre+'</span></div>'+
       '<div class="suc-row"><span>Archivos</span><span>'+ok+'</span></div>'+
-      '<div class="suc-row"><span>GPS</span><span>'+gpsStr+'</span></div>';
+      '<div class="suc-row"><span>Ubicacion</span><span>'+gpsDir+'</span></div>';
     goStep(4);
   }else{
     alert("Error al enviar. Revisa tu conexion.");
@@ -652,7 +652,7 @@ function resetApp(){
 }
 
 function goStep(n){
-  if(n===1)populateNombres();
+  if(n===1) populateNombres();
   if(n===3){
     document.getElementById("bannerIng").textContent=selLCL.ing;
     document.getElementById("bannerDesc").textContent=selLCL.desc+" - Obras: "+selLCL.obras;
