@@ -76,6 +76,22 @@ input[type=file]{display:none}
 .empty{text-align:center;padding:24px;color:#6B7280;font-size:13px}
 textarea{resize:none}
 canvas{display:none}
+.hist-btn{position:fixed;bottom:18px;right:18px;width:48px;height:48px;border-radius:50%;background:#1B3A6B;color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(27,58,107,.35);display:flex;align-items:center;justify-content:center;z-index:100;-webkit-tap-highlight-color:transparent}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:82vh;display:flex;flex-direction:column;padding:0 0 20px}
+.modal-header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #DDE1E9}
+.modal-header h3{font-size:16px;font-weight:700;color:#1B3A6B;margin:0}
+.modal-close{background:none;border:none;font-size:22px;color:#6B7280;cursor:pointer;padding:0;line-height:1}
+.modal-body{flex:1;overflow-y:auto;padding:12px 16px}
+.hist-empty{text-align:center;color:#6B7280;font-size:13px;padding:32px 0}
+.hist-item{background:#F8FAFF;border:1.5px solid #DDE1E9;border-radius:10px;padding:11px 13px;margin-bottom:8px}
+.hist-lcl{font-size:13px;font-weight:700;color:#1B3A6B;margin-bottom:2px}
+.hist-meta{font-size:11px;color:#6B7280;display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
+.hist-meta span{background:#E8EFF9;color:#2D5A9E;padding:2px 7px;border-radius:20px;font-weight:600}
+.hist-date{font-size:11px;color:#9CA3AF;margin-top:3px}
+.badge-cam{background:#dcf5e8;color:#16a34a;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block;margin-left:4px}
+.badge-gal{background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block;margin-left:4px}
 </style>
 </head>
 <body>
@@ -85,6 +101,20 @@ canvas{display:none}
 </div>
 <div class="progress"><div class="pbar" id="pbar" style="width:20%"></div></div>
 <canvas id="cvs"></canvas>
+
+<button class="hist-btn" onclick="openHist()" title="Historial de cargas">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+</button>
+
+<div class="modal-overlay" id="histModal" onclick="closeHistIfOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>Historial de cargas</h3>
+      <button class="modal-close" onclick="closeHist()">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="histBody"></div>
+  </div>
+</div>
 
 <div class="container">
 
@@ -139,7 +169,7 @@ canvas{display:none}
 <div class="step" id="s3">
   <div class="tag">PASO 4 DE 5</div>
   <h2>Sube los archivos</h2>
-  <p class="sub">Las fotos tendran marca de agua con fecha y ubicacion.</p>
+  <p class="sub">Fotos tomadas con camara llevaran marca de agua. Fotos de galeria o archivos no.</p>
   <div class="banner">
     <div class="banner-label">LCL seleccionado</div>
     <div class="banner-main" id="bannerIng"></div>
@@ -149,16 +179,23 @@ canvas{display:none}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 1 8 8c0 5.25-8 13-8 13S4 15.25 4 10a8 8 0 0 1 8-8z"/></svg>
     <div class="gps-info" id="gpsInfo">Obteniendo ubicacion...</div>
   </div>
-  <div class="upload-tabs">
-    <div class="tab active" id="tabFoto" onclick="setTab('foto')">Foto</div>
-    <div class="tab" id="tabArch" onclick="setTab('archivo')">Archivo</div>
+
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <div class="upload-zone" style="flex:1;margin-bottom:0" onclick="document.getElementById('fiCam').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <p style="font-size:13px">Tomar foto</p>
+      <small>Camara + marca de agua</small>
+    </div>
+    <div class="upload-zone" style="flex:1;margin-bottom:0" onclick="document.getElementById('fiGal').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <p style="font-size:13px">Cargar archivo</p>
+      <small>Galeria / PDF / Documentos</small>
+    </div>
   </div>
-  <div class="upload-zone" onclick="document.getElementById('fi').click()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    <p id="uzText">Toca para tomar o subir foto</p>
-    <small id="uzSub">JPG, PNG, HEIC</small>
-  </div>
-  <input type="file" id="fi" accept="image/*" multiple capture="environment" onchange="onFiles(this)">
+
+  <input type="file" id="fiCam" accept="image/*" multiple capture="environment" onchange="onFiles(this,'cam')">
+  <input type="file" id="fiGal" accept="*/*" multiple onchange="onFiles(this,'gal')">
+
   <div class="file-grid" id="fileGrid"></div>
   <div class="field">
     <label>Nota (opcional)</label>
@@ -472,8 +509,8 @@ var PERSONAL={
   "Supervisor":["william.huarcaya","wilder.guerrero","eduardo.pujada","joseli.huaita","juan.rojas","precilio.ramirez"],
   "Liquidador":["flor.acedo","onorio.junes","maylli.rosales","dante.garcia","brenda.paiva","romina.marrufo","oscar.japay"]
 };
-var selCarg=null,selNombre=null,selLCL=null,selFiles=[],upMode="foto";
-var gpsLat=null,gpsLng=null,gpsDir="Sin ubicacion",gpsReady=false;
+var selCarg=null,selNombre=null,selLCL=null,selFiles=[],selFileSources=[];
+var gpsLat=null,gpsLng=null,gpsDir="Sin ubicacion",gpsCoords="",gpsReady=false;
 
 function initGPS(){
   gpsReady=false;gpsLat=null;gpsLng=null;gpsDir="Sin ubicacion";
@@ -496,11 +533,13 @@ function initGPS(){
         if(addr.suburb||addr.neighbourhood) parts.push(addr.suburb||addr.neighbourhood);
         if(addr.city||addr.town||addr.village) parts.push(addr.city||addr.town||addr.village);
         gpsDir=parts.length>0?parts.join(", "):"Lat:"+gpsLat.toFixed(4)+" Lng:"+gpsLng.toFixed(4);
+        gpsCoords="Lat:"+gpsLat.toFixed(5)+" Lng:"+gpsLng.toFixed(5);
         gpsReady=true;
         document.getElementById("gpsInfo").innerHTML='<span class="gps-ok">'+gpsDir+'</span>';
       })
       .catch(function(){
         gpsDir="Lat:"+gpsLat.toFixed(5)+" Lng:"+gpsLng.toFixed(5);
+        gpsCoords=gpsDir;
         gpsReady=true;
         document.getElementById("gpsInfo").innerHTML='<span class="gps-ok">'+gpsDir+'</span>';
       });
@@ -550,31 +589,25 @@ function selLCLFn(id){
   document.getElementById("btn2").disabled=false;
 }
 
-function setTab(mode){
-  upMode=mode;
-  document.getElementById("tabFoto").className="tab"+(mode==="foto"?" active":"");
-  document.getElementById("tabArch").className="tab"+(mode==="archivo"?" active":"");
-  var fi=document.getElementById("fi");
-  if(mode==="foto"){fi.accept="image/*";fi.setAttribute("capture","environment");document.getElementById("uzText").textContent="Toca para tomar o subir foto";document.getElementById("uzSub").textContent="JPG, PNG, HEIC";}
-  else{fi.accept="*/*";fi.removeAttribute("capture");document.getElementById("uzText").textContent="Toca para subir un archivo";document.getElementById("uzSub").textContent="PDF, Word, Excel, imagenes...";}
-}
-
-function onFiles(input){
-  selFiles=selFiles.concat(Array.from(input.files));
+function onFiles(input,source){
+  var newFiles=Array.from(input.files);
+  newFiles.forEach(function(f){ selFiles.push(f); selFileSources.push(source||'gal'); });
   renderFiles();document.getElementById("btn3").disabled=selFiles.length===0;input.value="";
 }
 
 function renderFiles(){
   document.getElementById("fileGrid").innerHTML=selFiles.map(function(f,i){
     var isImg=f.type.indexOf("image/")===0;
-    if(isImg) return '<div class="file-thumb"><img src="'+URL.createObjectURL(f)+'"><button class="rm" onclick="rmFile('+i+')">x</button></div>';
-    return '<div class="file-thumb"><span class="ficon">&#128196;</span><span class="fname">'+f.name+'</span><button class="rm" onclick="rmFile('+i+')">x</button></div>';
+    var src=selFileSources[i];
+    var badge=src==='cam'?'<span class="badge-cam" style="position:absolute;bottom:3px;left:3px;z-index:2">CAM</span>':'<span class="badge-gal" style="position:absolute;bottom:3px;left:3px;z-index:2">GAL</span>';
+    if(isImg) return '<div class="file-thumb"><img src="'+URL.createObjectURL(f)+'">'+badge+'<button class="rm" onclick="rmFile('+i+')">x</button></div>';
+    return '<div class="file-thumb"><span class="ficon">&#128196;</span><span class="fname">'+f.name+'</span>'+badge+'<button class="rm" onclick="rmFile('+i+')">x</button></div>';
   }).join("");
 }
 
-function rmFile(i){selFiles.splice(i,1);renderFiles();document.getElementById("btn3").disabled=selFiles.length===0;}
+function rmFile(i){selFiles.splice(i,1);selFileSources.splice(i,1);renderFiles();document.getElementById("btn3").disabled=selFiles.length===0;}
 
-function addWatermark(file,dateStr,dirStr){
+function addWatermark(file,dateStr,dirStr,coordsStr){
   return new Promise(function(res){
     if(file.type.indexOf("image/")<0){res(file);return;}
     var img=new Image();
@@ -588,6 +621,7 @@ function addWatermark(file,dateStr,dirStr){
       ctx.drawImage(img,0,0,w,h);
       var fSize=Math.max(13,Math.round(w/45));
       var lines=["Fecha: "+dateStr,"Lugar: "+dirStr];
+      if(coordsStr) lines.push("Coords: "+coordsStr);
       ctx.font="bold "+fSize+"px Arial";
       var maxTw=0;
       lines.forEach(function(l){var tw=ctx.measureText(l).width;if(tw>maxTw)maxTw=tw;});
@@ -615,9 +649,18 @@ async function enviar(){
   var dateStr=now.getFullYear()+"/"+pad(now.getMonth()+1)+"/"+pad(now.getDate())+" "+pad(now.getHours())+":"+pad(now.getMinutes());
   var fechaHora=now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate())+"_"+pad(now.getHours())+"-"+pad(now.getMinutes());
   var ok=0;
+  var camCount=0,galCount=0;
   for(var i=0;i<selFiles.length;i++){
     var f=selFiles[i];
-    var processed=await addWatermark(f,dateStr,gpsDir);
+    var isCam=selFileSources[i]==='cam';
+    var processed;
+    if(isCam){
+      processed=await addWatermark(f,dateStr,gpsDir,gpsCoords);
+      camCount++;
+    } else {
+      processed=f;
+      galCount++;
+    }
     var ext=f.name.includes(".")?f.name.split(".").pop():"jpg";
     var nombre=fechaHora+(selFiles.length>1?"_"+(i+1):"")+"."+ext;
     try{
@@ -627,12 +670,25 @@ async function enviar(){
     }catch(e){console.error(e);}
   }
   if(ok>0){
+    // Save to history
+    saveHistory({
+      lcl: selLCL.ing,
+      desc: selLCL.desc,
+      obras: selLCL.obras,
+      persona: selNombre,
+      cargo: selCarg,
+      archivos: ok,
+      camCount: camCount,
+      galCount: galCount,
+      ubicacion: gpsDir,
+      fecha: dateStr
+    });
     document.getElementById("sucMsg").textContent=ok+" archivo"+(ok>1?"s":"")+" enviado"+(ok>1?"s":"")+" correctamente.";
     document.getElementById("sucCard").innerHTML=
       '<div class="suc-row"><span>LCL</span><span>'+selLCL.ing+'</span></div>'+
       '<div class="suc-row"><span>Cargo</span><span>'+selCarg+'</span></div>'+
       '<div class="suc-row"><span>Nombre</span><span>'+selNombre+'</span></div>'+
-      '<div class="suc-row"><span>Archivos</span><span>'+ok+'</span></div>'+
+      '<div class="suc-row"><span>Archivos</span><span>'+ok+(camCount>0?' ('+camCount+' con marca de agua)':'')+'</span></div>'+
       '<div class="suc-row"><span>Ubicacion</span><span>'+gpsDir+'</span></div>';
     goStep(4);
   }else{
@@ -642,7 +698,7 @@ async function enviar(){
 }
 
 function resetApp(){
-  selLCL=null;selFiles=[];
+  selLCL=null;selFiles=[];selFileSources=[];
   document.getElementById("fileGrid").innerHTML="";
   document.getElementById("nota").value="";
   document.getElementById("searchLCL").value="";
@@ -666,6 +722,50 @@ function goStep(n){
 
 function pad(n){return String(n).padStart(2,"0");}
 function toB64(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result.split(",")[1]);};r.onerror=rej;r.readAsDataURL(file);});}
+
+// History functions
+function saveHistory(entry){
+  try{
+    var hist=JSON.parse(localStorage.getItem('paHistorial')||'[]');
+    hist.unshift(entry);
+    if(hist.length>200) hist=hist.slice(0,200);
+    localStorage.setItem('paHistorial',JSON.stringify(hist));
+  }catch(e){console.warn('historial no disponible',e);}
+}
+
+function openHist(){
+  var hist=[];
+  try{hist=JSON.parse(localStorage.getItem('paHistorial')||'[]');}catch(e){}
+  var body=document.getElementById("histBody");
+  if(!hist.length){
+    body.innerHTML='<div class="hist-empty">Aun no hay cargas registradas en este dispositivo.</div>';
+  } else {
+    body.innerHTML=hist.map(function(h){
+      var camBadge=h.camCount>0?'<span class="badge-cam">'+h.camCount+' cam</span>':'';
+      var galBadge=h.galCount>0?'<span class="badge-gal">'+h.galCount+' gal</span>':'';
+      return '<div class="hist-item">'+
+        '<div class="hist-lcl">'+h.lcl+'</div>'+
+        '<div style="font-size:11px;color:#374151;margin-top:1px">'+h.desc+'</div>'+
+        '<div class="hist-meta">'+
+          '<span>'+h.persona+'</span>'+
+          '<span>'+h.cargo+'</span>'+
+          '<span>'+h.archivos+' arch.'+(camBadge||galBadge?' '+camBadge+galBadge:'')+'</span>'+
+        '</div>'+
+        '<div class="hist-date">'+h.fecha+' &bull; '+h.ubicacion+'</div>'+
+      '</div>';
+    }).join('');
+  }
+  document.getElementById("histModal").classList.add("open");
+}
+
+function closeHist(){
+  document.getElementById("histModal").classList.remove("open");
+}
+
+function closeHistIfOutside(e){
+  if(e.target===document.getElementById("histModal")) closeHist();
+}
+
 renderLCL("");
 </script>
 </body>
